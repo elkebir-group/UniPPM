@@ -1,0 +1,13 @@
+sample_index	sample_label	anatomical_site_index	anatomical_site_label	character_index	character_label	var	ref
+0	R1	0	B	0	cluster1	77	435
+0	R1	0	B	1	cluster2	0	534
+0	R1	0	B	2	cluster3	0	640
+0	R1	0	B	3	cluster4	17	187
+1	R2	0	B	0	cluster1	73	371
+1	R2	0	B	1	cluster2	0	481
+1	R2	0	B	2	cluster3	2	490
+1	R2	0	B	3	cluster4	14	171
+2	R3	0	B	0	cluster1	79	375
+2	R3	0	B	1	cluster2	52	412
+2	R3	0	B	2	cluster3	53	443
+2	R3	0	B	3	cluster4	0	172
