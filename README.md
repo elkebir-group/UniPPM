@@ -2,7 +2,7 @@
 
 UniPPM is an almost uniform sampler for the Perfect Phylogeny Mixture (PPM) problem, it takes a frequency matrix whoses rows are mixture of clones as input, and sample trees that satisfied the sum condition. UniPPM also support input in the form of reads and solve a maximum likelihood version of the problem (MLPPM). 
 
-![Overview of UniPPM](figure1.pdf)
+![Overview of UniPPM](figure1.png)
 
 
 ## Compliation and Usage instructions
