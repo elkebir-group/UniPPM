@@ -1,6 +1,5 @@
 import pandas as pd
-import CNF 
-import SCS
+import CNF
 import sys
 import getopt
 import math
