@@ -10,8 +10,10 @@
 #include <approxmc/approxmc.h>
 #include <unigen/unigen.h>
 #include <map>
+#include <mutex>
 
 class Solver {
+    friend class Parallel_Solver;
 public:
     Solver(const AncestryGraph & In, int n_threads);
 
@@ -21,7 +23,11 @@ public:
 
     int counting(CNF &);
 
-    void sampling(CNF &,int n_sample, std::map<std::vector<std::pair<int,int> >,int > & res, bool add_ = false);
+    void sampling(CNF &,int n_sample, std::map<std::vector<std::pair<int,int> >,int > & res,
+                  std::mutex *res_lock = NULL);
+
+    void auto_sampling(int n_sample, std::map<std::vector<std::pair<int,int> >,int > & res);
+
 
     CNF& self_solver();
 
@@ -38,7 +44,6 @@ private:
 
     CNF F;
 
-    bool divide_n_conquer;
 };
 
 

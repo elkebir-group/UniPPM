@@ -152,7 +152,7 @@ int main(int argc, char * argv[]) {
             cout<<in.F_l[i][j]<<' ' <<in.F_u[i][j]<<endl;
         }
     }
-    solver.sampling(solver.self_solver(),n_samples*2,res);
+    solver.auto_sampling(n_samples * 2, res);
 
     for(auto i:res){
         cout <<"----------- sample:"<<i.second<<endl;

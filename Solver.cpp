@@ -4,9 +4,9 @@
 
 #include "Solver.h"
 #include <map>
+#include <thread>
 
-Solver::Solver(const AncestryGraph &in, int n_threads = 0):F(),In(in){
-    divide_n_conquer = !(In.In.r < 0 || n_threads <= 1);
+Solver::Solver(const AncestryGraph &in, int N_threads = 0):F(),In(in){
 
     std::vector<CMSat::Lit> r_vars;
     if (In.In.r < 0){
@@ -117,6 +117,7 @@ Solver::~Solver() {
 }
 
 
+
 std::vector<CMSat::Lit> Solver::to_bin_list(int n, const int &N) {
     std::vector<CMSat::Lit> a(N);
     for(int i=0;i<N;i++){
@@ -138,9 +139,9 @@ bool Solver::attempt(CNF &Fptr, std::vector<std::pair<int,int> > *result) {
     std::vector<CMSat::Lit> res = Fptr.Solve(true);
     if (res.empty())
         return false;
-    std::vector<int> var_res;
+    std::vector<int> var_res(res.size());
     for (int i = 0; i < res.size(); i++){
-        var_res.push_back(res[i].sign()?-(int)(res[i].var()):(res[i].var()));
+        var_res[i] = (res[i].sign()?-(int)(res[i].var()):(res[i].var()));
     }
     interpret(var_res,*result);
     return true;
@@ -150,10 +151,13 @@ int Solver::counting(CNF &Fptr) {
     return Fptr.Counting();
 }
 
-void Solver::sampling(CNF &Fptr, int n_sample, std::map<std::vector<std::pair<int,int> >,int> & res, bool add_) {
+void Solver::sampling(CNF &Fptr, int n_sample, std::map<std::vector<std::pair<int,int> >,int> & res,
+                      std::mutex *res_lock) {
     Fptr.Sampling(n_sample);
     std::vector<std::pair<int,int> > edges;
-    if (!add_) res.clear();
+    if (res_lock!=NULL){
+        res_lock->lock();
+    }
     for(auto v :Fptr.Results){
         interpret(v,edges);
         if (res.find(edges)!=res.end()){
@@ -162,6 +166,9 @@ void Solver::sampling(CNF &Fptr, int n_sample, std::map<std::vector<std::pair<in
         else {
             res[edges] = 1;
         }
+    }
+    if (res_lock!=NULL){
+        res_lock->unlock();
     }
 }
 
@@ -177,8 +184,51 @@ void Solver::interpret(const std::vector<int> & vars, std::vector<std::pair<int,
             ans.push_back(var2edge[(*it)-1]);
         }
     }
-    printf("\n");
+//    printf("\n");
 }
+
+void Solver::auto_sampling(int n_sample, std::map<std::vector<std::pair<int, int>>, int> &res) {
+    if(In.In.r < 0 ){
+        sampling(F,n_sample,res);
+    }
+    int n_d1 = In.outd(In.In.r).size();
+    int n_cases = 1<<n_d1;
+    std::vector<CNF> jobs(n_cases,F);
+    std::vector<CMSat::Lit> enumerate(n_d1);
+
+    for (int i = 0; i < n_d1; i++){
+        enumerate[i] = edge2var[std::pair<int,int>(In.In.r,In.outd(In.In.r)[i])];
+    }
+    for (int i = 0; i < n_d1; i++){
+        jobs[0].add_clause({enumerate[i]});
+    }
+    for (int ca = 1; ca < n_cases; ca++){
+        int cas = ca^(ca-1);
+        for(int i = 0; i < n_d1; i++){
+            if (cas & 1){
+                enumerate[i] = ~enumerate[i];
+            }
+            cas >>= 1;
+            jobs[ca].add_clause({enumerate[i]});
+        }
+    }
+
+    std::vector<int> n_sols(n_cases);
+    int sum_sols = 0;
+
+    for(int i = 0; i < n_cases; i++){
+        n_sols[i] = jobs[i].Counting();
+        sum_sols += n_sols[i];
+    }
+
+    for(int i = 0; i < n_cases; i++){
+        if (n_sols[i] == 0) continue;
+        sampling(jobs[i],(int) (1.0 * n_sols[i] / sum_sols * n_sample), res);
+    }
+}
+
+
+
 
 
 
