@@ -114,7 +114,7 @@ void CNF::add(const std::vector<CMSat::Lit> &a, const std::vector<CMSat::Lit> &b
         if (i) full_adder(a[i], b[i],c[i-1], r[i], c[i]);
         else half_adder(a[i], b[i], r[i], c[i]);
     }
-    clauses.push_back(std::vector<CMSat::Lit>(1,~c[a.size()-1]));
+    clauses.emplace_back(1,~c[a.size()-1]);
 }
 
 CMSat::Lit CNF::leq(std::vector<CMSat::Lit> a, const std::vector<CMSat::Lit> &b, bool free_result) {
@@ -131,7 +131,7 @@ CMSat::Lit CNF::leq(std::vector<CMSat::Lit> a, const std::vector<CMSat::Lit> &b,
         else full_adder(a[i], b[i], True, r[i], c[i]);
     }
     if(!free_result){
-        clauses.push_back(std::vector<CMSat::Lit>(1,c[a.size()-1]));
+        clauses.emplace_back(1,c[a.size()-1]);
     }
     return c[a.size()-1];
 }
@@ -236,8 +236,8 @@ std::vector<CMSat::Lit> CNF::Solve(bool ind) {
             while(tmp<*it ){
                 tmp++;
             }
-            if (minisat->get_model()[tmp] == CMSat::l_True) result.push_back(CMSat::Lit(tmp+1, false));
-            else result.push_back(CMSat::Lit(tmp+1, true));
+            if (minisat->get_model()[tmp] == CMSat::l_True) result.emplace_back(tmp+1, false);
+            else result.emplace_back(tmp+1, true);
         }
         delete minisat;
         return result;

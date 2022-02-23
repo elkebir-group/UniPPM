@@ -22,7 +22,7 @@ Is_single(true),is_single(Is_single){
             if (ij_flag) {
                 out_d[i].push_back(j);
                 in_d[j].push_back(i);
-                edge_set.push_back(std::pair<int,int>(i,j));
+                edge_set.emplace_back(i,j);
             }
         }
     }
