@@ -17,15 +17,17 @@ public:
 
     ~Solver();
 
-    bool attempt(CNF &, std::vector<int> * = NULL);
+    bool attempt(CNF &, std::vector<std::pair<int,int> > * = NULL);
 
     int counting(CNF &);
 
-    std::vector<std::vector<int> > sampling(CNF &,int n_sample);
+    void sampling(CNF &,int n_sample, std::map<std::vector<std::pair<int,int> >,int > & res, bool add_ = false);
 
     CNF& self_solver();
 
     const AncestryGraph &In;
+    
+    void interpret(const std::vector<int> & vars, std::vector<std::pair<int,int> > & ans);
 
 private:
 

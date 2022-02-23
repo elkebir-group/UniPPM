@@ -59,11 +59,11 @@ public:
 
     std::vector<CMSat::Lit> Solve(bool =true);
 
-
     int Counting(bool = true, int = 1);
     void Sampling(int, int = 1, bool = false);
 
     const std::vector< std::vector<int> > &Results;
+
 
 private:
     std::vector< std::vector<CMSat::Lit> > clauses;

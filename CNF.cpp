@@ -77,6 +77,7 @@ void CNF::XOR(const CMSat::Lit &a, const CMSat::Lit &b, const CMSat::Lit &r) {
 }
 
 void CNF::Exact_One(const std::vector<CMSat::Lit> &Lits) {
+    clauses.push_back(Lits);
     for (auto it=Lits.begin();it!=Lits.end();it++){
         for (auto it2 = Lits.begin();it2!=it;it2++){
             clauses.push_back(std::vector<CMSat::Lit>{~(*it),~(*it2)});
@@ -201,7 +202,7 @@ void CNF::to_file(const char *filename) const {
     fprintf(out,"p cnf %d %d\n",n_variables, clauses.size());
     fprintf(out,"c ind");
     for(int i = 0; i < ind_vs.size();i++){
-        fprintf(out, " %d", ind_vs[i]);
+        fprintf(out, " %d", ind_vs[i]+1);
     }
     fprintf(out," 0\n");
     for(auto it = clauses.begin();it != clauses.end(); it++){
@@ -223,17 +224,20 @@ std::vector<CMSat::Lit> CNF::Solve(bool ind) {
     CMSat::lbool ret = minisat ->solve();
     if (ret==CMSat::l_False){
         delete minisat;
+        if (ind){
+            return {};
+        }
         return {False};
     }
     if (ind){
         std::vector<CMSat::Lit> result;
         int tmp=0;
         for (auto it = ind_vs.begin(); it != ind_vs.end(); it++){
-            while(tmp+1<*it ){
+            while(tmp<*it ){
                 tmp++;
             }
-            if (minisat->get_model()[tmp] == CMSat::l_True) result.push_back(CMSat::Lit(tmp, false));
-            else result.push_back(CMSat::Lit(tmp, true));
+            if (minisat->get_model()[tmp] == CMSat::l_True) result.push_back(CMSat::Lit(tmp+1, false));
+            else result.push_back(CMSat::Lit(tmp+1, true));
         }
         delete minisat;
         return result;
@@ -244,7 +248,8 @@ std::vector<CMSat::Lit> CNF::Solve(bool ind) {
 
 int CNF::Counting(bool sampling , int verbosity) {
     if (appmc != NULL){
-        delete appmc, unigen;
+        delete appmc;
+        delete unigen;
         unigen = NULL;
     }
     appmc = new ApproxMC::AppMC;
@@ -283,7 +288,8 @@ void CNF::Sampling(int n_samples, int verbosity, bool keep) {
 }
 
 CNF::~CNF() {
-    delete appmc,unigen;
+    delete appmc;
+    delete unigen;
 }
 
 void callback(const std::vector<int> & solution, void* ptr_data) {

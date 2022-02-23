@@ -3,6 +3,7 @@
 //
 
 #include "Solver.h"
+#include <map>
 
 Solver::Solver(const AncestryGraph &in, int n_threads = 0):F(),In(in){
     divide_n_conquer = !(In.In.r < 0 || n_threads <= 1);
@@ -16,6 +17,7 @@ Solver::Solver(const AncestryGraph &in, int n_threads = 0):F(),In(in){
 
     for (int i = 0; i < In.E.size(); i++){
         int var = F.new_var(true);
+//        printf("debug: %d %d\n",In.E[i].first,In.E[i].second);
         var2edge[var] = In.E[i];
         edge2var[In.E[i]] = CMSat::Lit(var,false);
     }
@@ -41,6 +43,14 @@ Solver::Solver(const AncestryGraph &in, int n_threads = 0):F(),In(in){
         }
         F.Exact_One(j_p);
     }
+//    printf("edge2var: %d\n",edge2var.size());
+//    for (auto it:edge2var){
+//        printf("<%d,%d>:%d\n",it.first.first,it.first.second,it.second.var());
+//    }
+//    printf("var2edge: %d\n",var2edge.size());
+//    for (auto it:var2edge){
+//        printf("%d:<%d,%d>\n",it.first,it.second.first,it.second.second);
+//    }
 
     //generating Freqs.
     std::vector< std::vector< std::vector<CMSat::Lit> > > F_var
@@ -77,28 +87,28 @@ Solver::Solver(const AncestryGraph &in, int n_threads = 0):F(),In(in){
             }
         }
     }
-//
-//    //Cycle prevention
-//    std::vector<std::vector<CMSat::Lit> > relation(In.In.n, std::vector<CMSat::Lit>(In.In.n));
-//    for (int i = 0; i < In.In.n; i++){
-//        for (int j = 0; j < In.In.n; j++) {
-//            if (i==j) relation[i][i] = F.True;
-//            relation[i][j] = CMSat::Lit(F.new_var(), false);
-//        }
-//    }
-//    for (int i = 0; i < In.In.n; i++){
-//        for (int j = 0; j < In.In.n; j++){
-//            if (i==j) continue;
-//            std::vector<CMSat::Lit> inj(In.ind(j).size());
-//            for (int ij = 0;ij<In.ind(j).size();ij++){
-//                inj[ij] = F.AND(relation[i][j],edge2var[std::pair<int,int>(In.ind(j)[ij],j)]);
-//            }
-//            F.OR_Lits(inj,relation[i][j]);
-//        }
-//    }
-//    for (int i = 0; i < In.In.n; i++)
-//        for (int j = 0; j < In.In.n; j++)
-//            F.add_clause({~relation[i][j],~relation[j][i]});
+
+    //Cycle prevention
+    std::vector<std::vector<CMSat::Lit> > relation(In.In.n, std::vector<CMSat::Lit>(In.In.n));
+    for (int i = 0; i < In.In.n; i++){
+        for (int j = 0; j < In.In.n; j++) {
+            if (i==j) relation[i][i] = F.True;
+            relation[i][j] = CMSat::Lit(F.new_var(), false);
+        }
+    }
+    for (int i = 0; i < In.In.n; i++){
+        for (int j = 0; j < In.In.n; j++){
+            if (i==j) continue;
+            std::vector<CMSat::Lit> inj(In.ind(j).size());
+            for (int ij = 0;ij<In.ind(j).size();ij++){
+                inj[ij] = F.AND(relation[i][j],edge2var[std::pair<int,int>(In.ind(j)[ij],j)]);
+            }
+            F.OR_Lits(inj,relation[i][j]);
+        }
+    }
+    for (int i = 0; i < In.In.n; i++)
+        for (int j = 0; j < In.In.n; j++)
+            F.add_clause({~relation[i][j],~relation[j][i]});
 
 }
 
@@ -120,18 +130,19 @@ CNF& Solver::self_solver() {
     return F;
 }
 
-bool Solver::attempt(CNF &Fptr, std::vector<int> *result) {
+bool Solver::attempt(CNF &Fptr, std::vector<std::pair<int,int> > *result) {
     if (result==NULL) {
         std::vector<CMSat::Lit> res = Fptr.Solve(false);
         return (res[0]==F.True);
     }
     std::vector<CMSat::Lit> res = Fptr.Solve(true);
-    if (res[0]==F.False)
+    if (res.empty())
         return false;
-    result->clear();
+    std::vector<int> var_res;
     for (int i = 0; i < res.size(); i++){
-        result->push_back(res[i].sign()?-(int)(res[i].var()+1):(res[i].var()+1));
+        var_res.push_back(res[i].sign()?-(int)(res[i].var()):(res[i].var()));
     }
+    interpret(var_res,*result);
     return true;
 }
 
@@ -139,9 +150,34 @@ int Solver::counting(CNF &Fptr) {
     return Fptr.Counting();
 }
 
-std::vector<std::vector<int> > Solver::sampling(CNF &Fptr, int n_sample) {
+void Solver::sampling(CNF &Fptr, int n_sample, std::map<std::vector<std::pair<int,int> >,int> & res, bool add_) {
     Fptr.Sampling(n_sample);
-    return Fptr.Results;
+    std::vector<std::pair<int,int> > edges;
+    if (!add_) res.clear();
+    for(auto v :Fptr.Results){
+        interpret(v,edges);
+        if (res.find(edges)!=res.end()){
+            res[edges] ++ ;
+        }
+        else {
+            res[edges] = 1;
+        }
+    }
+}
+
+void Solver::interpret(const std::vector<int> & vars, std::vector<std::pair<int, int> > &ans) {
+    ans.clear();
+    for(auto it = vars.begin(); it!=vars.end(); it++){
+//        printf(" %d",*it);
+        if (*it > 0) {
+//            if(var2edge[*it]==std::pair<int,int>(0,0)){
+//
+//            }
+//            printf("var2edge.. %d %d\n",var2edge[*it].first,var2edge[*it].second);
+            ans.push_back(var2edge[(*it)-1]);
+        }
+    }
+    printf("\n");
 }
 
 

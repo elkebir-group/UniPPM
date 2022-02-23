@@ -6,6 +6,7 @@
 
 #include <boost/math/special_functions/beta.hpp>
 
+#include <cmath>
 #include <fstream>
 
 
@@ -31,7 +32,8 @@ Input::Input(const char * filename) : m(M), n(N), r(R), F_l(F_lower), F_u(F_uppe
 
 Input::~Input() {
     delete ptr;
-    delete F_upper,F_lower;
+    delete F_upper;
+    delete F_lower;
 }
 
 Input::Input(const Input_Reads &In, const double &alpha): m(M), n(N), r(R), F_l(F_lower), F_u(F_upper) {
@@ -56,6 +58,7 @@ Input::Input(const Input_Reads &In, const double &alpha): m(M), n(N), r(R), F_l(
 }
 
 
+
 Input_int::Input_int(const Input & In, const int &N_bits):m(In.m),n(In.n),r(In.r),Nn(N_bits),n_bits(Nn),F_l(F_lower),F_u(F_upper) {
         F_lower = new int *[m];
         F_upper = new int *[m];
@@ -73,8 +76,11 @@ Input_int::Input_int(const Input & In, const int &N_bits):m(In.m),n(In.n),r(In.r
 
 Input_int::~Input_int() {
     delete ptr;
-    delete F_upper,F_lower;
+    delete F_upper;
+    delete F_lower;
 }
+
+
 
 Input_Reads::Input_Reads(const char *filename): m(M), n(N), r(R), var(VAR), ref(REF){
     std::ifstream fin(filename);
@@ -96,5 +102,9 @@ Input_Reads::Input_Reads(const char *filename): m(M), n(N), r(R), var(VAR), ref(
 }
 
 Input_Reads::~Input_Reads() {
-    delete ptr,VAR,REF;
+    delete ptr;
+    delete VAR;
+    delete REF;
 }
+
+
