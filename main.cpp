@@ -88,7 +88,7 @@ void parse_argument(int argc,char * argv[]){
                 n_intervals = 10;
                 break;
             case 's':
-                seed = time(0);
+                seed = 1;//time(0);
         }
     }
     srand(seed);

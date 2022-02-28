@@ -254,6 +254,7 @@ int CNF::Counting(bool sampling , int verbosity) {
     }
     appmc = new ApproxMC::AppMC;
     appmc ->set_verbosity(verbosity);
+    appmc ->set_seed(rand());
 
     appmc -> new_vars(n_variables);
     for (auto it = clauses.begin(); it!=clauses.end();it++){
