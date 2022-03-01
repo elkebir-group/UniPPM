@@ -2,7 +2,7 @@
 #include <map>
 #include <string>
 #include <set>
-#include <ctime>
+//#include <ctime>
 #include <random>
 //#include <boost/program_options.hpp>
 //namespace po = boost::program_options;
@@ -11,6 +11,8 @@
 
 #include "Solver.h"
 #include "Likelihood.h"
+
+const double EPS(1e-9);
 
 using namespace std;
 map<string,string> vm;
@@ -65,9 +67,11 @@ void parse_argument(int argc,char * argv[]){
         switch ((*it)[1]) {
             case 'i':
                 cerr << "Input file" << endl;
+//                input_file = "input.txt";
                 exit(1);
             case 'o':
                 cerr << "Output file" <<endl;
+//                output_file = "tmp.txt";
                 exit(1);
             case 'n':
                 n_samples = 1000;
@@ -97,15 +101,16 @@ void parse_argument(int argc,char * argv[]){
 int main(int argc, char * argv[]) {
     parse_argument(argc,argv);
     Input_Reads raw_in(input_file.c_str());
-    double l_a = 1e-9,r_a = 1-1e-9, t_alpha;
+    double l_a = EPS,r_a = 1-EPS, t_alpha;
     vector<pair<int,int> > edges;
 #define m_a ((l_a+r_a)/2)
-    while (r_a-l_a>1e-7){
+    while (r_a-l_a>EPS){
         Input transform_in(raw_in,m_a);
         Input_int in(transform_in,n_bits);
         AncestryGraph Gf(in);
         Solver tester(Gf,0);
-        if(tester.attempt(tester.self_solver(),&edges))
+        bool att = tester.attempt(tester.self_solver(),&edges);
+        if(att)
             r_a = m_a;
         else
             l_a = m_a;
@@ -118,12 +123,14 @@ int main(int argc, char * argv[]) {
         Likelihood LLH(in,raw_in,n_intervals);
         llh = LLH.LLH(edges);
     }
-    cout<<"estimate lowerbound of log likelihood:"<<llh<<endl;
+
 
     double target = llh/help_approx_coef, filtering = llh/approx_coef;
-    l_a = 1e-9,r_a = 1-1e-9;
+    cout<<"estimate lowerbound of log likelihood: "<<llh<<", target llh: "<<target<<endl;
+
+    l_a = EPS,r_a = 1-EPS;
     double lower_bound_ll = 1e300;
-    while (r_a-l_a>1e-7 && abs(lower_bound_ll-target)>1e-7){
+    while (r_a-l_a>EPS && abs(lower_bound_ll-target)>EPS){
         Input transform_in(raw_in,m_a);
         lower_bound_ll = lower_bound_llh(raw_in,transform_in,n_bits);
         if(lower_bound_ll>target)
@@ -147,19 +154,14 @@ int main(int argc, char * argv[]) {
     Likelihood LLH(in,raw_in,n_bits);
 
     map<vector<pair<int,int> >,int> res;
-    for (int i = 0; i < in.m; i++){
-        for(int j = 0; j < in.n; j++){
-            cout<<in.F_l[i][j]<<' ' <<in.F_u[i][j]<<endl;
-        }
-    }
     solver.auto_sampling(n_samples * 2, res);
 
-    for(auto i:res){
-        cout <<"----------- sample:"<<i.second<<endl;
-        for (auto j:i.first){
-            cout<<j.first<<' '<<j.second<<endl;
-        }
-    }
+//    for(auto i:res){
+//        cout <<"----------- sample:"<<i.second<<endl;
+//        for (auto j:i.first){
+//            cout<<j.first<<' '<<j.second<<endl;
+//        }
+//    }
 
     ostringstream sout;
     int unique = 0, total = 0;
@@ -177,7 +179,7 @@ int main(int argc, char * argv[]) {
         }
     }
     ofstream fout(output_file);
-    fout<<"#"<<total<<"tree, #"<<unique<<" unique trees"<<endl;
+    fout<<"#"<<total<<" trees, #"<<unique<<" unique trees"<<endl;
     fout<<sout.str();
     fout.close();
     return 0;

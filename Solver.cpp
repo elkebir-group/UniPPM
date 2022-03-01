@@ -83,7 +83,7 @@ Solver::Solver(const AncestryGraph &in, int N_threads = 0):F(),In(in){
                 std::vector<CMSat::Lit> F_u_var = to_bin_list(In.In.F_u[p][i], In.In.n_bits),
                                         F_l_var = to_bin_list(In.In.F_l[p][i], In.In.n_bits);
                 F.leq(Sum,F_u_var);
-                F.eq(F_var[p][i],F.max(Sum,F_u_var));
+                F.eq(F_var[p][i],F.max(Sum,F_l_var));
             }
         }
     }
@@ -92,7 +92,10 @@ Solver::Solver(const AncestryGraph &in, int N_threads = 0):F(),In(in){
     std::vector<std::vector<CMSat::Lit> > relation(In.In.n, std::vector<CMSat::Lit>(In.In.n));
     for (int i = 0; i < In.In.n; i++){
         for (int j = 0; j < In.In.n; j++) {
-            if (i==j) relation[i][i] = F.True;
+            if (i==j) {
+                relation[i][i] = F.True;
+                continue;
+            }
             relation[i][j] = CMSat::Lit(F.new_var(), false);
         }
     }
@@ -101,14 +104,15 @@ Solver::Solver(const AncestryGraph &in, int N_threads = 0):F(),In(in){
             if (i==j) continue;
             std::vector<CMSat::Lit> inj(In.ind(j).size());
             for (int ij = 0;ij<In.ind(j).size();ij++){
-                inj[ij] = F.AND(relation[i][j],edge2var[std::pair<int,int>(In.ind(j)[ij],j)]);
+                inj[ij] = F.AND(relation[i][In.ind(j)[ij]],edge2var[std::pair<int,int>(In.ind(j)[ij],j)]);
             }
             F.OR_Lits(inj,relation[i][j]);
         }
     }
     for (int i = 0; i < In.In.n; i++)
-        for (int j = 0; j < In.In.n; j++)
-            F.add_clause({~relation[i][j],~relation[j][i]});
+        for (int j = 0; j < i; j++) {
+            F.add_clause({~relation[i][j], ~relation[j][i]});
+        }
 
 }
 
