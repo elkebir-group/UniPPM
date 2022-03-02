@@ -64,6 +64,8 @@ public:
 
     const std::vector< std::vector<int> > &Results;
 
+    void clear();
+
 private:
     std::vector< std::vector<CMSat::Lit> > clauses;
     int n_variables;

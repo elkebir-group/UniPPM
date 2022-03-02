@@ -293,6 +293,11 @@ CNF::~CNF() {
     delete unigen;
 }
 
+void CNF::clear() {
+    delete appmc;
+    delete unigen;
+}
+
 void callback(const std::vector<int> & solution, void* ptr_data) {
     std::vector< std::vector<int> > *callbackdata = (std::vector< std::vector<int> > *)ptr_data;
     callbackdata->push_back(solution);

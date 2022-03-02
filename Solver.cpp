@@ -223,6 +223,7 @@ void Solver::auto_sampling(int n_sample, std::map<std::vector<std::pair<int, int
     for(int i = 0; i < n_cases; i++){
         n_sols[i] = jobs[i].Counting();
         sum_sols += n_sols[i];
+        if (!n_sols[i]) jobs[i].clear();
     }
 
     for(int i = 0; i < n_cases; i++){
