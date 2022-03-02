@@ -296,6 +296,8 @@ CNF::~CNF() {
 void CNF::clear() {
     delete appmc;
     delete unigen;
+    ind_vs.clear();
+    clauses.clear();
 }
 
 void callback(const std::vector<int> & solution, void* ptr_data) {
