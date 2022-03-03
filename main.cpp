@@ -67,12 +67,12 @@ void parse_argument(int argc,char * argv[]){
         switch ((*it)[1]) {
             case 'i':
                 cerr << "Input file" << endl;
-//                input_file = "input.txt";
-                exit(1);
+                input_file = "input.txt";
+//                exit(1);
             case 'o':
                 cerr << "Output file" <<endl;
-//                output_file = "tmp.txt";
-                exit(1);
+                output_file = "tmp.txt";
+//                exit(1);
             case 'n':
                 n_samples = 1000;
                 break;
@@ -154,7 +154,7 @@ int main(int argc, char * argv[]) {
     Likelihood LLH(in,raw_in,n_bits);
 
     map<vector<pair<int,int> >,int> res;
-    solver.auto_sampling(n_samples * 2, res);
+    solver.sampling(n_samples * 2, res);
 
 //    for(auto i:res){
 //        cout <<"----------- sample:"<<i.second<<endl;

@@ -7,15 +7,16 @@
 #include <cassert>
 
 CNF::CNF():True(CMSat::Lit(0, false)),False(CMSat::Lit(0, true)),
-minisat(NULL), appmc(NULL), unigen(NULL), n_variables(1), Results(callbackdata),
+minisat(NULL), //appmc(NULL), unigen(NULL),
+n_variables(1), //Results(callbackdata),
 clauses({std::vector<CMSat::Lit>{ CMSat::Lit(0, false)} }),
 ind_vs()
 {
 }
 
 CNF::CNF(const CNF & cp):True(CMSat::Lit(0, false)),False(CMSat::Lit(0, true)),
-minisat(NULL), appmc(NULL), unigen(NULL),
-clauses(cp.clauses), n_variables(cp.n_variables), ind_vs(cp.ind_vs), Results(callbackdata)
+minisat(NULL), //appmc(NULL), unigen(NULL),
+clauses(cp.clauses), n_variables(cp.n_variables), ind_vs(cp.ind_vs)//, Results(callbackdata)
 {
 }
 
@@ -246,64 +247,80 @@ std::vector<CMSat::Lit> CNF::Solve(bool ind) {
     return {True};
 }
 
-int CNF::Counting(bool sampling , int verbosity) {
-    if (appmc != NULL){
-        delete appmc;
-        delete unigen;
-        unigen = NULL;
-    }
-    appmc = new ApproxMC::AppMC;
-    appmc ->set_verbosity(verbosity);
-    appmc ->set_seed(rand());
+CNF::~CNF() {
+}
 
-    appmc -> new_vars(n_variables);
-    for (auto it = clauses.begin(); it!=clauses.end();it++){
+
+void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, std::map<std::vector<int>,int> & result) {
+    ApproxMC::AppMC* appmc;
+    std::vector<ApproxMC::SolCount> appmc_res (1<<enum_set.size());
+    std::vector<CMSat::Lit>  additional_clauses (enum_set.size());
+    std::vector<std::vector<std::vector<int> > > sampling_res(1<<enum_set.size());
+    long long tot_sol = 0;
+    for (int i = 0; i < enum_set.size(); i++) {
+        additional_clauses[i] = CMSat::Lit(enum_set[i],false);
+    }
+    for(int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
+        appmc = new ApproxMC::AppMC;
+        if (i > 0) {
+            _tmp = i ^ (i - 1);
+            for (auto it = additional_clauses.begin(); it != additional_clauses.end(); it++, _tmp >>= 1) {
+                if (_tmp & 1)
+                    (*it) = ~(*it);
+            }
+        }
+        appmc_res[i] = Counting(*this, additional_clauses, appmc);
+        tot_sol += (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
+        if (appmc_res[i].cellSolCount > 0) {
+            Sampling(n_samples+1, appmc, appmc_res[i], &sampling_res[i]);
+        }
+        delete appmc;
+    }
+    for (int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
+        if (appmc_res[i].cellSolCount <= 0) {
+            continue;
+        }
+        _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
+        for (int _ = 0; _ < _tmp; _++) {
+            if(result.find(sampling_res[i][_])!=result.end()){
+                result[sampling_res[i][_]]++;
+            } else {
+                result[sampling_res[i][_]]=1;
+            }
+        }
+    }
+}
+
+ApproxMC::SolCount CNF::Counting(const CNF &origin, const  std::vector<CMSat::Lit>  & additional_clauses,
+                   ApproxMC::AppMC *appmc, int verbosity) {
+    appmc -> set_verbosity(verbosity);
+    appmc -> set_seed(rand());
+    appmc -> new_vars(origin.n_variables);
+    for (auto it = origin.clauses.begin(); it!=origin.clauses.end(); it++){
         appmc -> add_clause(*it);
     }
-
-    appmc -> set_projection_set (ind_vs);
-    appmc -> setup_vars();
-
-    if (sampling) {
-        callbackdata.clear();
-        unigen = new UniGen::UniG(appmc);
-        unigen -> set_callback(callback, &callbackdata);
+    for (auto it = additional_clauses.begin(); it!=additional_clauses.end(); it++){
+        appmc -> add_clause({*it});
     }
-
-    sol_count = appmc -> count();
-
-    return (1<<sol_count.hashCount)*sol_count.cellSolCount;
+    appmc ->set_projection_set(origin.ind_vs);
+    appmc ->setup_vars();
+    return appmc -> count();
 }
 
-void CNF::Sampling(int n_samples, int verbosity, bool keep) {
-    if (unigen == NULL){
-        Counting(true, verbosity);
-    }
-
-    unigen -> sample(&sol_count, n_samples);
-
-    if (!keep) {
-        delete unigen;
-        unigen = NULL;
-    }
-}
-
-CNF::~CNF() {
-    delete appmc;
+void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCount & sol_count,
+                   std::vector< std::vector<int> >* ptr_) {
+    UniGen::UniG * unigen = new UniGen::UniG(appmc);
+    unigen -> set_callback(callback, ptr_);
+    unigen -> sample(&sol_count,  n_samples);
     delete unigen;
-}
-
-void CNF::clear() {
-    delete appmc;
-    delete unigen;
-    ind_vs.clear();
-    clauses.clear();
 }
 
 void callback(const std::vector<int> & solution, void* ptr_data) {
     std::vector< std::vector<int> > *callbackdata = (std::vector< std::vector<int> > *)ptr_data;
     callbackdata->push_back(solution);
 }
+
+
 
 
 

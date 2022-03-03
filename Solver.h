@@ -21,12 +21,7 @@ public:
 
     bool attempt(CNF &, std::vector<std::pair<int,int> > * = NULL);
 
-    int counting(CNF &);
-
-    void sampling(CNF &,int n_sample, std::map<std::vector<std::pair<int,int> >,int > & res,
-                  std::mutex *res_lock = NULL);
-
-    void auto_sampling(int n_sample, std::map<std::vector<std::pair<int,int> >,int > & res);
+    void sampling(int n_sample, std::map<std::vector<std::pair<int,int> >,int > & res);
 
 
     CNF& self_solver();

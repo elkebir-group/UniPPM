@@ -4,7 +4,6 @@
 
 #include "Solver.h"
 #include <map>
-#include <thread>
 
 Solver::Solver(const AncestryGraph &in, int N_threads = 0):F(),In(in){
 
@@ -17,7 +16,6 @@ Solver::Solver(const AncestryGraph &in, int N_threads = 0):F(),In(in){
 
     for (int i = 0; i < In.E.size(); i++){
         int var = F.new_var(true);
-//        printf("debug: %d %d\n",In.E[i].first,In.E[i].second);
         var2edge[var] = In.E[i];
         edge2var[In.E[i]] = CMSat::Lit(var,false);
     }
@@ -43,14 +41,6 @@ Solver::Solver(const AncestryGraph &in, int N_threads = 0):F(),In(in){
         }
         F.Exact_One(j_p);
     }
-//    printf("edge2var: %d\n",edge2var.size());
-//    for (auto it:edge2var){
-//        printf("<%d,%d>:%d\n",it.first.first,it.first.second,it.second.var());
-//    }
-//    printf("var2edge: %d\n",var2edge.size());
-//    for (auto it:var2edge){
-//        printf("%d:<%d,%d>\n",it.first,it.second.first,it.second.second);
-//    }
 
     //generating Freqs.
     std::vector< std::vector< std::vector<CMSat::Lit> > > F_var
@@ -117,10 +107,7 @@ Solver::Solver(const AncestryGraph &in, int N_threads = 0):F(),In(in){
 }
 
 Solver::~Solver() {
-
 }
-
-
 
 std::vector<CMSat::Lit> Solver::to_bin_list(int n, const int &N) {
     std::vector<CMSat::Lit> a(N);
@@ -151,84 +138,29 @@ bool Solver::attempt(CNF &Fptr, std::vector<std::pair<int,int> > *result) {
     return true;
 }
 
-int Solver::counting(CNF &Fptr) {
-    return Fptr.Counting();
-}
-
-void Solver::sampling(CNF &Fptr, int n_sample, std::map<std::vector<std::pair<int,int> >,int> & res,
-                      std::mutex *res_lock) {
-    Fptr.Sampling(n_sample);
-    std::vector<std::pair<int,int> > edges;
-    if (res_lock!=NULL){
-        res_lock->lock();
-    }
-    for(auto v :Fptr.Results){
-        interpret(v,edges);
-        if (res.find(edges)!=res.end()){
-            res[edges] ++ ;
-        }
-        else {
-            res[edges] = 1;
-        }
-    }
-    if (res_lock!=NULL){
-        res_lock->unlock();
-    }
-}
-
 void Solver::interpret(const std::vector<int> & vars, std::vector<std::pair<int, int> > &ans) {
     ans.clear();
     for(auto it = vars.begin(); it!=vars.end(); it++){
-//        printf(" %d",*it);
         if (*it > 0) {
-//            if(var2edge[*it]==std::pair<int,int>(0,0)){
-//
-//            }
-//            printf("var2edge.. %d %d\n",var2edge[*it].first,var2edge[*it].second);
             ans.push_back(var2edge[(*it)-1]);
         }
     }
-//    printf("\n");
 }
 
-void Solver::auto_sampling(int n_sample, std::map<std::vector<std::pair<int, int>>, int> &res) {
-    if(In.In.r < 0 ){
-        sampling(F,n_sample,res);
-    }
+void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, int> &res) {
     int n_d1 = In.outd(In.In.r).size();
-    int n_cases = 1<<n_d1;
-    std::vector<CNF> jobs(n_cases,F);
-    std::vector<CMSat::Lit> enumerate(n_d1);
+    std::vector<uint32_t> enumerate(n_d1);
 
     for (int i = 0; i < n_d1; i++){
-        enumerate[i] = edge2var[std::pair<int,int>(In.In.r,In.outd(In.In.r)[i])];
-    }
-    for (int i = 0; i < n_d1; i++){
-        jobs[0].add_clause({enumerate[i]});
-    }
-    for (int ca = 1; ca < n_cases; ca++){
-        int cas = ca^(ca-1);
-        for(int i = 0; i < n_d1; i++){
-            if (cas & 1){
-                enumerate[i] = ~enumerate[i];
-            }
-            cas >>= 1;
-            jobs[ca].add_clause({enumerate[i]});
-        }
+        enumerate[i] = edge2var[std::pair<int,int>(In.In.r,In.outd(In.In.r)[i])].var();
     }
 
-    std::vector<int> n_sols(n_cases);
-    int sum_sols = 0;
-
-    for(int i = 0; i < n_cases; i++){
-        n_sols[i] = jobs[i].Counting();
-        sum_sols += n_sols[i];
-        if (!n_sols[i]) jobs[i].clear();
-    }
-
-    for(int i = 0; i < n_cases; i++){
-        if (n_sols[i] == 0) continue;
-        sampling(jobs[i],(int) (1.0 * n_sols[i] / sum_sols * n_sample), res);
+    std::map<std::vector<int>, int> unigen_res;
+    std::vector<std::pair<int,int> > tmp;
+    F.Enum_Sampling(enumerate,n_sample,unigen_res);
+    for(auto it=unigen_res.begin();it!=unigen_res.end();it++){
+        interpret(it->first, tmp);
+        res[tmp] = it->second;
     }
 }
 

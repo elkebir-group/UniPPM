@@ -6,6 +6,7 @@
 #define UNIPPM_CNF_H
 
 #include <vector>
+#include <map>
 #include <cryptominisat5/cryptominisat.h>
 #include <approxmc/approxmc.h>
 #include <unigen/unigen.h>
@@ -59,24 +60,20 @@ public:
 
     std::vector<CMSat::Lit> Solve(bool =true);
 
-    int Counting(bool = true, int = 1);
-    void Sampling(int, int = 1, bool = false);
 
-    const std::vector< std::vector<int> > &Results;
+    void Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, std::map<std::vector<int>,int> & result);
 
-    void clear();
+    static ApproxMC::SolCount Counting(const CNF & origin, const std::vector<CMSat::Lit> & additional_clauses,
+                         ApproxMC::AppMC* appmc, int = 1);
+
+    static void Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCount &sol_count,
+                         std::vector<std::vector<int> > *ptr_);
 
 private:
     std::vector< std::vector<CMSat::Lit> > clauses;
     int n_variables;
     std::vector<uint32_t> ind_vs;
     CMSat::SATSolver *minisat;
-
-    ApproxMC::AppMC *appmc;
-    ApproxMC::SolCount sol_count;
-    UniGen::UniG *unigen;
-
-    std::vector< std::vector<int> > callbackdata;
 };
 
 void callback(const std::vector<int> &, void *);
