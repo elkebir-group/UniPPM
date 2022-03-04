@@ -163,24 +163,23 @@ int main(int argc, char * argv[]) {
 //        }
 //    }
 
-    ostringstream sout;
     int unique = 0, total = 0;
 
+    ofstream fout(output_file);
     for(auto it = res.begin();it!=res.end();it++) {
         double ll = LLH.LLH(it->first);
         if (ll < filtering){
             continue;
         }
-        sout<< "#" <<(it->first.size())<<" edges, tree "<<unique<<", "<<(it->second)<<" samples, log-likelihood:"<<ll<<'\n';
+        fout<< "#" <<(it->first.size())<<" edges, tree "<<unique<<", "<<(it->second)<<" samples, log-likelihood:"<<ll<<'\n';
         unique ++ ;
         total += it->second;
         for(auto edge:it->first){
-            sout<<edge.first<<' '<<edge.second<<'\n';
+            fout<<edge.first<<' '<<edge.second<<'\n';
         }
     }
-    ofstream fout(output_file);
     fout<<"#"<<total<<" trees, #"<<unique<<" unique trees"<<endl;
-    fout<<sout.str();
+
     fout.close();
     return 0;
 }
