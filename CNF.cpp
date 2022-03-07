@@ -5,6 +5,7 @@
 #include "CNF.h"
 #include <random>
 #include <cassert>
+#include <chrono>
 
 CNF::CNF():True(CMSat::Lit(0, false)),False(CMSat::Lit(0, true)),
 minisat(NULL), //appmc(NULL), unigen(NULL),
@@ -261,6 +262,7 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
         additional_clauses[i] = CMSat::Lit(enum_set[i],false);
     }
     for(int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
+        auto start = std::chrono::high_resolution_clock::now();
         appmc = new ApproxMC::AppMC;
         if (i > 0) {
             _tmp = i ^ (i - 1);
@@ -270,9 +272,17 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
             }
         }
         appmc_res[i] = Counting(*this, additional_clauses, appmc);
+        auto stop = std::chrono::high_resolution_clock::now();
+
+        std::cerr << "ApproxMC: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
+
         tot_sol += (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
         if (appmc_res[i].cellSolCount > 0) {
+            start = std::chrono::high_resolution_clock::now();
             Sampling(n_samples+1, appmc, appmc_res[i], &sampling_res[i]);
+            stop = std::chrono::high_resolution_clock::now();
+
+            std::cerr << "UniGen: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl << std::endl;
         }
         delete appmc;
     }
