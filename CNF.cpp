@@ -256,7 +256,7 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
     ApproxMC::AppMC* appmc;
     std::vector<ApproxMC::SolCount> appmc_res (1<<enum_set.size());
     std::vector<CMSat::Lit>  additional_clauses (enum_set.size());
-    std::vector<std::vector<std::vector<int> > > sampling_res(1<<enum_set.size());
+    std::vector<std::list<std::vector<int> > > sampling_res(1<<enum_set.size());
     long long tot_sol = 0;
     for (int i = 0; i < enum_set.size(); i++) {
         additional_clauses[i] = CMSat::Lit(enum_set[i],false);
@@ -286,16 +286,17 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
         }
         delete appmc;
     }
-    for (int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
+    for (int i = 0, _tmp, _c; i < (1<<enum_set.size()); i++ ) {
         if (appmc_res[i].cellSolCount <= 0) {
             continue;
         }
         _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
-        for (int _ = 0; _ < _tmp; _++) {
-            if(result.find(sampling_res[i][_])!=result.end()){
-                result[sampling_res[i][_]]++;
+        _c = 0;
+        for (auto it = sampling_res[i].begin(); _c < _tmp; _c++, it++) {
+            if(result.find(*it)!=result.end()){
+                result[*it]++;
             } else {
-                result[sampling_res[i][_]]=1;
+                result[*it]=1;
             }
         }
     }
@@ -318,7 +319,7 @@ ApproxMC::SolCount CNF::Counting(const CNF &origin, const  std::vector<CMSat::Li
 }
 
 void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCount & sol_count,
-                   std::vector< std::vector<int> >* ptr_) {
+                   std::list< std::vector<int> >* ptr_) {
     UniGen::UniG * unigen = new UniGen::UniG(appmc);
     unigen -> set_callback(callback, ptr_);
     unigen -> sample(&sol_count,  n_samples);
@@ -326,8 +327,8 @@ void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCou
 }
 
 void callback(const std::vector<int> & solution, void* ptr_data) {
-    std::vector< std::vector<int> > *callbackdata = (std::vector< std::vector<int> > *)ptr_data;
-    callbackdata->push_back(solution);
+    std::list< std::vector<int> > *callbackdata = (std::list< std::vector<int> > *)ptr_data;
+    callbackdata->emplace_back(solution);
 }
 
 

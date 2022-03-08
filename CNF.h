@@ -10,6 +10,7 @@
 #include <cryptominisat5/cryptominisat.h>
 #include <approxmc/approxmc.h>
 #include <unigen/unigen.h>
+#include <list>
 
 class CNF {
 public:
@@ -67,7 +68,7 @@ public:
                          ApproxMC::AppMC* appmc, int = 1);
 
     static void Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCount &sol_count,
-                         std::vector<std::vector<int> > *ptr_);
+                         std::list<std::vector<int> > *ptr_);
 
 private:
     std::vector< std::vector<CMSat::Lit> > clauses;
