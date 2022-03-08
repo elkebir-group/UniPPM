@@ -274,7 +274,7 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
         appmc_res[i] = Counting(*this, additional_clauses, appmc);
         auto stop = std::chrono::high_resolution_clock::now();
 
-        std::cerr << "ApproxMC: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
+        std::cout << "ApproxMC: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
 
         tot_sol += (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
         if (appmc_res[i].cellSolCount > 0) {
@@ -282,7 +282,7 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
             Sampling(n_samples+1, appmc, appmc_res[i], &sampling_res[i]);
             stop = std::chrono::high_resolution_clock::now();
 
-            std::cerr << "UniGen: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl << std::endl;
+            std::cout << "UniGen: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl << std::endl;
         }
         delete appmc;
     }
