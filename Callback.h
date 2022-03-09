@@ -10,7 +10,8 @@
 class Callback {
 public:
     int n;//, n_sol;
-    std::vector<std::vector<int> >::iterator it;
+//    std::vector<std::vector<int> >::iterator it;
+    int index;
 
     std::vector<std::vector<int> > data;
     Callback(int n_, int n_sol_);
