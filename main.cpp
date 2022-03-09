@@ -165,20 +165,22 @@ int main(int argc, char * argv[]) {
 
     int unique = 0, total = 0;
 
-    ofstream fout(output_file);
+    stringstream sout;
     for(auto it = res.begin();it!=res.end();it++) {
         double ll = LLH.LLH(it->first);
         if (ll < filtering){
             continue;
         }
-        fout<< "#" <<(it->first.size())<<" edges, tree "<<unique<<", "<<(it->second)<<" samples, log-likelihood:"<<ll<<'\n';
+        sout<< "#" <<(it->first.size())<<" edges, tree "<<unique<<", "<<(it->second)<<" samples, log-likelihood:"<<ll<<'\n';
         unique ++ ;
         total += it->second;
         for(auto edge:it->first){
-            fout<<edge.first<<' '<<edge.second<<'\n';
+            sout<<edge.first<<' '<<edge.second<<'\n';
         }
     }
+    ofstream fout(output_file);
     fout<<"#"<<total<<" trees, #"<<unique<<" unique trees"<<endl;
+    fout<<sout.str()<<endl;
 
     fout.close();
     return 0;
