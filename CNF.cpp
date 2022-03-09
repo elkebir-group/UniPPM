@@ -254,7 +254,7 @@ CNF::~CNF() {
 
 void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, std::map<std::vector<int>,int> & result,
                         std::vector<Callback> & data) {
-    std::vector<ApproxMC::AppMC*> appmcs;
+    std::vector<ApproxMC::AppMC*> appmcs (1<<enum_set.size());
     std::vector<ApproxMC::SolCount> appmc_res (1<<enum_set.size());
     std::vector<CMSat::Lit>  additional_clauses (enum_set.size());
 
