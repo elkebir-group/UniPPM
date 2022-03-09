@@ -277,6 +277,9 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
         if (appmc_res[i].cellSolCount == 0) {
             delete appmcs[i];
         }
+
+        tot_sol += (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
+
         auto stop = std::chrono::high_resolution_clock::now();
 
         std::cout << "ApproxMC: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count()
@@ -284,10 +287,10 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
     }
 
     for(int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
-        tot_sol += (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
         if (appmc_res[i].cellSolCount > 0) {
             auto start = std::chrono::high_resolution_clock::now();
-            Sampling(n_samples+1, appmcs[i], appmc_res[i], &data[i]);
+            _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
+            Sampling(_tmp, appmcs[i], appmc_res[i], &data[i]);
             auto stop = std::chrono::high_resolution_clock::now();
 
             std::cout << "UniGen: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl << std::endl;
@@ -298,6 +301,7 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
         if (appmc_res[i].cellSolCount <= 0) {
             continue;
         }
+
         _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
         _c = 0;
         for (auto it = data[i].data.begin(); _c < _tmp; _c++, it++) {
