@@ -67,14 +67,14 @@ void parse_argument(int argc,char * argv[]){
         switch ((*it)[1]) {
             case 'i':
                 cerr << "Input file" << endl;
-//                input_file = "input.txt";
-                exit(1);
+                input_file = "input.txt";
+//                exit(1);
             case 'o':
                 cerr << "Output file" <<endl;
-//                output_file = "tmp.txt";
-                exit(1);
+                output_file = "tmp.txt";
+//                exit(1);
             case 'n':
-                n_samples = 1000;
+                n_samples = 10;
                 break;
             case 'N':
                 n_bits = 10;
