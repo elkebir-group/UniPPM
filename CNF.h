@@ -11,6 +11,7 @@
 #include <approxmc/approxmc.h>
 #include <unigen/unigen.h>
 #include <list>
+#include "Callback.h"
 
 class CNF {
 public:
@@ -61,14 +62,14 @@ public:
 
     std::vector<CMSat::Lit> Solve(bool =true);
 
-
-    void Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, std::map<std::vector<int>,int> & result);
+    void Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, std::map<std::vector<int>,int> & result,
+                       std::vector<Callback> & data);
 
     static ApproxMC::SolCount Counting(const CNF & origin, const std::vector<CMSat::Lit> & additional_clauses,
                          ApproxMC::AppMC* appmc, int = 1);
 
     static void Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCount &sol_count,
-                         std::list<std::vector<int> > *ptr_);
+                         Callback *ptr_);
 
 private:
     std::vector< std::vector<CMSat::Lit> > clauses;
@@ -77,6 +78,5 @@ private:
     CMSat::SATSolver *minisat;
 };
 
-void callback(const std::vector<int> &, void *);
 
 #endif //UNIPPM_CNF_H
