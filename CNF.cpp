@@ -254,7 +254,7 @@ CNF::~CNF() {
 
 void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, std::map<std::vector<int>,int> & result,
                         std::vector<Callback> & data) {
-    ApproxMC::AppMC* appmc;
+    std::vector<ApproxMC::AppMC*> appmcs;
     std::vector<ApproxMC::SolCount> appmc_res (1<<enum_set.size());
     std::vector<CMSat::Lit>  additional_clauses (enum_set.size());
 
@@ -264,7 +264,7 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
     }
     for(int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
         auto start = std::chrono::high_resolution_clock::now();
-        appmc = new ApproxMC::AppMC;
+        appmcs[i] = new ApproxMC::AppMC;
         if (i > 0) {
             _tmp = i ^ (i - 1);
             for (auto it = additional_clauses.begin(); it != additional_clauses.end(); it++, _tmp >>= 1) {
@@ -272,20 +272,27 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
                     (*it) = ~(*it);
             }
         }
-        appmc_res[i] = Counting(*this, additional_clauses, appmc);
+        appmc_res[i] = Counting(*this, additional_clauses, appmcs[i]);
+
+        if (appmc_res[i].cellSolCount == 0) {
+            delete appmcs[i];
+        }
         auto stop = std::chrono::high_resolution_clock::now();
 
-        std::cout << "ApproxMC: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
+        std::cout << "ApproxMC: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count()
+                  << std::endl;
+    }
 
+    for(int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
         tot_sol += (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
         if (appmc_res[i].cellSolCount > 0) {
-            start = std::chrono::high_resolution_clock::now();
-            Sampling(n_samples+1, appmc, appmc_res[i], &data[i]);
-            stop = std::chrono::high_resolution_clock::now();
+            auto start = std::chrono::high_resolution_clock::now();
+            Sampling(n_samples+1, appmcs[i], appmc_res[i], &data[i]);
+            auto stop = std::chrono::high_resolution_clock::now();
 
             std::cout << "UniGen: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl << std::endl;
         }
-        delete appmc;
+//        delete appmc;
     }
     for (int i = 0, _tmp, _c; i < (1<<enum_set.size()); i++ ) {
         if (appmc_res[i].cellSolCount <= 0) {
