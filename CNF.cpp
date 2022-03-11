@@ -303,7 +303,7 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
         }
 
         _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
-        printf("appmc res: %d es..\n",_tmp);
+        printf("appmc res: %lld es..\n",(1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount);
         _c = 0;
         for (auto it = data[i].data.begin(); _c < _tmp; _c++, it++) {
             if(result.find(*it)!=result.end()){
