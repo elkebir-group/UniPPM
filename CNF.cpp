@@ -336,13 +336,12 @@ void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
             }
             else {
                 appmc = new ApproxMC::AppMC;
-                Counting(*this, additional_clauses, appmc);
 
                 std::cout << "[UniPPM] sampling with unigen: ("
                           << (1LL << appmc_res[i].hashCount) * appmc_res[i].cellSolCount << " solutions, " << _tmp
                           << " samples)" << std::endl;
 //                auto start = std::chrono::high_resolution_clock::now();
-                Sampling(_tmp, appmc, appmc_res[i], &data);
+                Sampling(_tmp, appmc, Counting(*this, additional_clauses, appmc), &data);
 //                auto stop = std::chrono::high_resolution_clock::now();
 //
 //                std::cout << "UniGen: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count()
