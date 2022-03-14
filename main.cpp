@@ -4,6 +4,7 @@
 #include <set>
 //#include <ctime>
 #include <random>
+//#include <cmath>
 //#include <boost/program_options.hpp>
 //namespace po = boost::program_options;
 
@@ -82,10 +83,10 @@ void parse_argument(int argc,char * argv[]){
 //                output_file = "tmp.txt";
                 exit(1);
             case 'n':
-                n_samples = 10;
+                n_samples = 20000;
                 break;
             case 'N':
-                n_bits = 10;
+                n_bits = 20;
                 break;
             case 'a':
                 approx_coef = 0.95;
@@ -103,10 +104,10 @@ void parse_argument(int argc,char * argv[]){
                 seed = 1;//time(0);
                 break;
             case 'R':
-                rec_size = 10;
+                rec_size = -1;
                 break;
             case 'T':
-                rec_T = 100000;
+                rec_T = -1;
         }
     }
     srand(seed);
@@ -115,6 +116,19 @@ void parse_argument(int argc,char * argv[]){
 int main(int argc, char * argv[]) {
     parse_argument(argc,argv);
     Input_Reads raw_in(input_file.c_str());
+
+    if (rec_size<0) {
+        rec_size = raw_in.n - 1;
+    }
+    if (rec_T<0) {
+        if (rec_size < 10) rec_T = 1 << 11;
+        else if (rec_size < 13) rec_T = 1 << (2*rec_size - 8);
+        else if (rec_size < 15) rec_T = 1 << 17;
+        else rec_T = 1 << 18;
+    }
+
+    std::cout<<"[UniPPM] recursive: var_size: "<<rec_size<<", rec_threshold: "<<rec_T<<"."<<endl;
+
     double l_a = EPS,r_a = 1-EPS, t_alpha;
     vector<pair<int,int> > edges;
 #define m_a ((l_a+r_a)/2)
@@ -179,22 +193,24 @@ int main(int argc, char * argv[]) {
 
     int unique = 0, total = 0;
 
-    stringstream sout;
+//    stringstream sout;
+
+    ofstream fout(output_file);
     for(auto it = res.begin();it!=res.end();it++) {
         double ll = LLH.LLH(it->first);
         if (ll < filtering){
             continue;
         }
-        sout<< "#" <<(it->first.size())<<" edges, tree "<<unique<<", "<<(it->second)<<" samples, log-likelihood:"<<ll<<'\n';
+        fout<< "#" <<(it->first.size())<<" edges, tree "<<unique<<", "<<(it->second)<<" samples, log-likelihood:"<<ll<<'\n';
         unique ++ ;
         total += it->second;
         for(auto edge:it->first){
-            sout<<edge.first<<' '<<edge.second<<'\n';
+            fout<<edge.first<<' '<<edge.second<<'\n';
         }
     }
-    ofstream fout(output_file);
+
     fout<<"#"<<total<<" trees, #"<<unique<<" unique trees"<<endl;
-    fout<<sout.str()<<endl;
+//    fout<<sout.str()<<endl;
 
     fout.close();
     return 0;
