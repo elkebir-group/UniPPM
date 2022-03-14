@@ -258,10 +258,6 @@ void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
                         std::list<std::vector<int> > & data, int threshold, int rec_size) {
 //    std::vector<ApproxMC::AppMC*> appmcs (1<<enum_set.size());
 
-    ApproxMC::AppMC* appmc;
-    std::vector<ApproxMC::SolCount> appmc_res (1<<enum_set.size());
-    std::vector<CMSat::Lit>  additional_clauses (enum_set.size());
-
     if (enum_set.empty()){
         rec_size = std::min(rec_size,(int)(remain.size()));
         std::shuffle(remain.begin(),remain.end(),std::mt19937{std::random_device{}()});
@@ -278,6 +274,9 @@ void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
         }
     }
 
+    ApproxMC::AppMC* appmc;
+    std::vector<ApproxMC::SolCount> appmc_res (1<<enum_set.size());
+    std::vector<CMSat::Lit>  additional_clauses (enum_set.size());
 
     long long tot_sol = 0;
     for (int i = 0; i < enum_set.size(); i++) {
