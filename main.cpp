@@ -164,7 +164,7 @@ int main(int argc, char * argv[]) {
     Input transform_in(raw_in,pow(t_alpha,1.0/(raw_in.n*raw_in.m)));
     Input_int in(transform_in,n_bits);
     AncestryGraph Gf(in);
-    Solver solver(Gf,0);
+    Solver solver(Gf,rec_size,rec_T);
     Likelihood LLH(in,raw_in,n_bits);
 
     map<vector<pair<int,int> >,int> res;
