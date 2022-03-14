@@ -7,11 +7,13 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include <cryptominisat5/cryptominisat.h>
 #include <approxmc/approxmc.h>
 #include <unigen/unigen.h>
 #include <list>
-#include "Callback.h"
+
+class Solver;
 
 class CNF {
 public:
@@ -62,20 +64,23 @@ public:
 
     std::vector<CMSat::Lit> Solve(bool =true);
 
-    void Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, std::map<std::vector<int>,int> & result,
-                       std::vector<Callback> & data);
+    void Enum_Sampling(std::vector<uint32_t> starting_enum_set, int n_samples,
+                       std::list<std::vector<int> > & data, int threshold=100000, int rec_size = 10);
+
+//    void Recursive_Sampling(int n_samples, std::map<std::vector<int>,int> & result, std::vector<Callback> & data, Solver * ptr, int threshold = 100000, int rule = 0);
 
     static ApproxMC::SolCount Counting(const CNF & origin, const std::vector<CMSat::Lit> & additional_clauses,
                          ApproxMC::AppMC* appmc, int = 1);
 
     static void Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCount &sol_count,
-                         Callback *ptr_);
+                         std::list<std::vector<int> > *ptr_);
 
 private:
     std::vector< std::vector<CMSat::Lit> > clauses;
     int n_variables;
     std::vector<uint32_t> ind_vs;
     CMSat::SATSolver *minisat;
+    std::vector<uint32_t> remain;
 };
 
 
