@@ -253,7 +253,7 @@ CNF::~CNF() {
 }
 
 void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
-                        std::list<std::vector<int> > & data, int threshold, int rec_size, int rec_min_s) {
+                        std::list<std::vector<int> > & data, int threshold, int rec_size) {
 //    std::vector<ApproxMC::AppMC*> appmcs (1<<enum_set.size());
 
     if (enum_set.empty()){
@@ -322,7 +322,7 @@ void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
 
             _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
 
-            if(_tmp > rec_min_s && (threshold>>appmc_res[i].hashCount) <= appmc_res[i].cellSolCount) {
+            if(threshold>0 && (threshold>>appmc_res[i].hashCount) <= appmc_res[i].cellSolCount) {
 
                 std::cout << "[UniPPM] rec_call: (" << (1LL << appmc_res[i].hashCount) * appmc_res[i].cellSolCount
                           << " solutions, " << _tmp << " samples)" << std::endl;
@@ -332,7 +332,7 @@ void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
                 }
                 rec_F.remain.resize(remain.size() - enum_set.size());
                 std::copy(remain.begin() + enum_set.size(), remain.end(), rec_F.remain.begin());
-                rec_F.Enum_Sampling({}, _tmp, data, threshold, rec_size, rec_min_s);
+                rec_F.Enum_Sampling({}, _tmp, data, threshold, rec_size);
             }
             else {
                 appmc = new ApproxMC::AppMC;

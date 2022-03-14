@@ -7,8 +7,7 @@
 #include <chrono>
 #include <utility>
 
-Solver::Solver(const AncestryGraph &in, int rec_size, int rec_T, int rec_m):
-F(),In(in),rec_size(rec_size),rec_T(rec_T),rec_min_s(rec_m){
+Solver::Solver(const AncestryGraph &in, int rec_size, int rec_T):F(),In(in),rec_size(rec_size),rec_T(rec_T){
 
     std::vector<CMSat::Lit> r_vars;
     if (In.In.r < 0){
@@ -162,7 +161,7 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
     std::vector<std::pair<int,int> > tmp;
     std::list<std::vector<int> > data;
 //    F.Enum_Sampling(enumerate,n_sample, data, rec_T, rec_size);
-    F.Enum_Sampling({},n_sample, data, rec_T, rec_size,rec_min_s);
+    F.Enum_Sampling({},n_sample, data, rec_T, rec_size);
 
     std::cout<<"[UniPPM] Sampling finished, sorting solutions. "<<std::endl;
 

@@ -15,7 +15,7 @@
 class Solver {
     friend class Parallel_Solver;
 public:
-    Solver(const AncestryGraph & In, int rec_size = 10, int rec_T = 100000, int rec_m = 200);
+    Solver(const AncestryGraph & In, int rec_size = 10, int rec_T = 100000);
 
     ~Solver();
 
@@ -39,7 +39,7 @@ private:
 
     CNF F;
 
-    int rec_size, rec_T, rec_min_s;
+    int rec_size, rec_T;
 
 };
 

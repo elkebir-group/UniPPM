@@ -23,11 +23,11 @@ int n_samples,n_bits,n_intervals;
 double approx_coef = -1, help_approx_coef;
 long long seed;
 
-int rec_size,rec_T,rec_m;
+int rec_size,rec_T;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-R","-T","-M"});
+    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-R","-T"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -70,9 +70,6 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'T':
                 rec_T = stoi(it->second);
-                break;
-            case 'M':
-                rec_m = stoi(it->second);
         }
     }
     for (auto it = p_options.begin();it!=p_options.end();it++) {
@@ -111,9 +108,6 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'T':
                 rec_T = -1;
-                break;
-            case 'M':
-                rec_m = -1;
         }
     }
     srand(seed);
@@ -131,9 +125,6 @@ int main(int argc, char * argv[]) {
         else if (rec_size < 13) rec_T = 1 << (2*rec_size - 8);
         else if (rec_size < 15) rec_T = 1 << 17;
         else rec_T = 1 << 18;
-    }
-    if (rec_m<0) {
-        rec_m = 200;
     }
 
     std::cout<<"[UniPPM] recursive: var_size: "<<rec_size<<", rec_threshold: "<<rec_T<<"."<<endl;
