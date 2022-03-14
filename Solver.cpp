@@ -162,6 +162,7 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
     F.Enum_Sampling({},n_sample, data, rec_T, rec_size);
 
     data.sort();
+
     for (auto it = data.begin(), it_pre = data.begin();it!=data.end(); it++) {
         if (it==data.begin() ) {
             unigen_res.emplace_back(*it,1);
@@ -169,10 +170,11 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
         }
         if ((*it)!=(*it_pre)){
             unigen_res.emplace_back(*it,1);
-            it_pre++;
-            continue;
         }
-        unigen_res.back().second++;
+        else {
+            unigen_res.back().second++;
+        }
+        it_pre++;
 //        if (unigen_res.find(*it) != unigen_res.end()) {
 //            unigen_res[*it]++;
 //        } else {
