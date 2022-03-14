@@ -15,7 +15,7 @@
 class Solver {
     friend class Parallel_Solver;
 public:
-    Solver(const AncestryGraph & In, int n_threads);
+    Solver(const AncestryGraph & In, int rec_size = 10, int rec_T = 100000);
 
     ~Solver();
 
@@ -38,6 +38,8 @@ private:
     std::vector<CMSat::Lit> to_bin_list(int n, const int &N);
 
     CNF F;
+
+    int rec_size, rec_T;
 
 };
 

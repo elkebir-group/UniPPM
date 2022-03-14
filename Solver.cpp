@@ -5,7 +5,7 @@
 #include "Solver.h"
 #include <map>
 
-Solver::Solver(const AncestryGraph &in, int N_threads = 0):F(),In(in){
+Solver::Solver(const AncestryGraph &in, int rec_size, int rec_T):F(),In(in),rec_size(rec_size),rec_T(rec_T){
 
     std::vector<CMSat::Lit> r_vars;
     if (In.In.r < 0){
@@ -155,17 +155,29 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
         enumerate[i] = edge2var[std::pair<int,int>(In.In.r,In.outd(In.In.r)[i])].var();
     }
 
-    std::map<std::vector<int>, int> unigen_res;
+    std::list<std::pair<std::vector<int>, int> >  unigen_res;
     std::vector<std::pair<int,int> > tmp;
     std::list<std::vector<int> > data;
-    F.Enum_Sampling(enumerate,n_sample, data);
+//    F.Enum_Sampling(enumerate,n_sample, data, rec_T, rec_size);
+    F.Enum_Sampling({},n_sample, data, rec_T, rec_size);
 
-    for (auto it = data.begin(); it!=data.end(); it++) {
-        if (unigen_res.find(*it) != unigen_res.end()) {
-            unigen_res[*it]++;
-        } else {
-            unigen_res[*it] = 1;
+    data.sort();
+    for (auto it = data.begin(), it_pre = data.begin();it!=data.end(); it++) {
+        if (it==data.begin() ) {
+            unigen_res.emplace_back(*it,1);
+            continue;
         }
+        if ((*it)!=(*it_pre)){
+            unigen_res.emplace_back(*it,1);
+            it_pre++;
+            continue;
+        }
+        unigen_res.back().second++;
+//        if (unigen_res.find(*it) != unigen_res.end()) {
+//            unigen_res[*it]++;
+//        } else {
+//            unigen_res[*it] = 1;
+//        }
     }
 
     for(auto it=unigen_res.begin();it!=unigen_res.end();it++){

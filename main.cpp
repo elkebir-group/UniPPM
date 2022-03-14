@@ -22,11 +22,11 @@ int n_samples,n_bits,n_intervals;
 double approx_coef = -1, help_approx_coef;
 long long seed;
 
-string log_dir;
+int rec_size,rec_T;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s"});
+    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-R","-T"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -64,6 +64,11 @@ void parse_argument(int argc,char * argv[]){
             case 's':
                 seed = stoi(it->second);
                 break;
+            case 'R':
+                rec_size = stoi(it->second);
+                break;
+            case 'T':
+                rec_T = stoi(it->second);
         }
     }
     for (auto it = p_options.begin();it!=p_options.end();it++) {
@@ -97,6 +102,11 @@ void parse_argument(int argc,char * argv[]){
             case 's':
                 seed = 1;//time(0);
                 break;
+            case 'R':
+                rec_size = 10;
+                break;
+            case 'T':
+                rec_T = 100000;
         }
     }
     srand(seed);
@@ -112,7 +122,7 @@ int main(int argc, char * argv[]) {
         Input transform_in(raw_in,m_a);
         Input_int in(transform_in,n_bits);
         AncestryGraph Gf(in);
-        Solver tester(Gf,0);
+        Solver tester(Gf);
         bool att = tester.attempt(tester.self_solver(),&edges);
         if(att)
             r_a = m_a;
