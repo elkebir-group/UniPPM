@@ -22,6 +22,8 @@ int n_samples,n_bits,n_intervals;
 double approx_coef = -1, help_approx_coef;
 long long seed;
 
+string log_dir;
+
 void parse_argument(int argc,char * argv[]){
     string options,value;
     set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s"});
@@ -61,6 +63,7 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 's':
                 seed = stoi(it->second);
+                break;
         }
     }
     for (auto it = p_options.begin();it!=p_options.end();it++) {
@@ -93,6 +96,7 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 's':
                 seed = 1;//time(0);
+                break;
         }
     }
     srand(seed);
