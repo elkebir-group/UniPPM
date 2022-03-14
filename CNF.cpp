@@ -6,6 +6,8 @@
 #include <random>
 #include <cassert>
 #include <chrono>
+#include <algorithm>
+#include <utility>
 #include "Callback.h"
 
 CNF::CNF():True(CMSat::Lit(0, false)),False(CMSat::Lit(0, true)),
@@ -18,13 +20,14 @@ ind_vs()
 
 CNF::CNF(const CNF & cp):True(CMSat::Lit(0, false)),False(CMSat::Lit(0, true)),
 minisat(NULL), //appmc(NULL), unigen(NULL),
-clauses(cp.clauses), n_variables(cp.n_variables), ind_vs(cp.ind_vs)//, Results(callbackdata)
+clauses(cp.clauses), n_variables(cp.n_variables), ind_vs(cp.ind_vs)//Results(callbackdata)
 {
 }
 
 int CNF::new_var(bool is_ind) {
     if (is_ind){
         ind_vs.push_back(n_variables);
+        remain.push_back(n_variables);
     }
     return n_variables++;
 }
@@ -252,11 +255,30 @@ std::vector<CMSat::Lit> CNF::Solve(bool ind) {
 CNF::~CNF() {
 }
 
-void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, std::map<std::vector<int>,int> & result,
-                        std::vector<Callback> & data) {
-    std::vector<ApproxMC::AppMC*> appmcs (1<<enum_set.size());
+void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
+                        std::list<std::vector<int> > & data, int threshold, int rec_size) {
+//    std::vector<ApproxMC::AppMC*> appmcs (1<<enum_set.size());
+
+    ApproxMC::AppMC* appmc;
     std::vector<ApproxMC::SolCount> appmc_res (1<<enum_set.size());
     std::vector<CMSat::Lit>  additional_clauses (enum_set.size());
+
+    if (enum_set.empty()){
+        rec_size = std::min(rec_size,(int)(remain.size()));
+        std::shuffle(remain.begin(),remain.end(),std::mt19937{std::random_device{}()});
+        enum_set.resize(rec_size);
+        std::copy(remain.begin(),remain.begin()+rec_size,enum_set.begin());
+    }
+    else {
+        std::sort(enum_set.begin(), enum_set.end());
+        std::sort(remain.begin(), remain.end());
+
+        for (int i = 0, j = 0; j < enum_set.size(); j++){
+            while(remain[i]<enum_set[j]) i++;
+            std::swap(remain[i],remain[j]);
+        }
+    }
+
 
     long long tot_sol = 0;
     for (int i = 0; i < enum_set.size(); i++) {
@@ -264,7 +286,7 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
     }
     for(int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
         auto start = std::chrono::high_resolution_clock::now();
-        appmcs[i] = new ApproxMC::AppMC;
+        appmc = new ApproxMC::AppMC;
         if (i > 0) {
             _tmp = i ^ (i - 1);
             for (auto it = additional_clauses.begin(); it != additional_clauses.end(); it++, _tmp >>= 1) {
@@ -272,11 +294,11 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
                     (*it) = ~(*it);
             }
         }
-        appmc_res[i] = Counting(*this, additional_clauses, appmcs[i]);
+        appmc_res[i] = Counting(*this, additional_clauses, appmc);
 
-        if (appmc_res[i].cellSolCount == 0) {
-            delete appmcs[i];
-        }
+//        if (appmc_res[i].cellSolCount == 0) {
+//            delete appmcs[i];
+//        }
 
         tot_sol += (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
 
@@ -284,35 +306,68 @@ void CNF::Enum_Sampling(const std::vector<uint32_t> & enum_set, int n_samples, s
 
         std::cout << "ApproxMC: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count()
                   << std::endl;
+
+        delete appmc;
+    }
+
+    for (int i = 0; i < enum_set.size(); i++) {
+        additional_clauses[i] = CMSat::Lit(enum_set[i],false);
     }
 
     for(int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
+        if (i > 0) {
+            _tmp = i ^ (i - 1);
+            for (auto it = additional_clauses.begin(); it != additional_clauses.end(); it++, _tmp >>= 1) {
+                if (_tmp & 1)
+                    (*it) = ~(*it);
+            }
+        }
         if (appmc_res[i].cellSolCount > 0) {
-            auto start = std::chrono::high_resolution_clock::now();
-            _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
-            Sampling(_tmp, appmcs[i], appmc_res[i], &data[i]);
-            auto stop = std::chrono::high_resolution_clock::now();
 
-            std::cout << "UniGen: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl << std::endl;
+            appmc = new ApproxMC::AppMC;
+            Counting(*this, additional_clauses, appmc);
+
+            _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
+
+            if(threshold>0 && (threshold>>appmc_res[i].hashCount) <= appmc_res[i].cellSolCount) {
+
+                CNF rec_F(*this);
+                for (auto it = additional_clauses.begin(); it != additional_clauses.end(); it++) {
+                    rec_F.clauses.push_back({*it});
+                }
+                rec_F.remain.resize(remain.size() - enum_set.size());
+                std::copy(remain.begin() + enum_set.size(), remain.end(), rec_F.remain.begin());
+                rec_F.Enum_Sampling({}, _tmp, data, threshold, rec_size);
+            }
+            else {
+                auto start = std::chrono::high_resolution_clock::now();
+
+                Sampling(_tmp, appmc, appmc_res[i], &data);
+                auto stop = std::chrono::high_resolution_clock::now();
+
+                std::cout << "UniGen: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count()
+                          << std::endl << std::endl;
+            }
         }
 //        delete appmc;
     }
-    for (int i = 0, _tmp, _c; i < (1<<enum_set.size()); i++ ) {
-        if (appmc_res[i].cellSolCount <= 0) {
-            continue;
-        }
 
-        _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
-        printf("appmc res: %lld es..\n",(1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount);
-        _c = 0;
-        for (auto it = data[i].data.begin(); _c < _tmp; _c++, it++) {
-            if(result.find(*it)!=result.end()){
-                result[*it]++;
-            } else {
-                result[*it]=1;
-            }
-        }
-    }
+//    for (int i = 0, _tmp, _c; i < (1<<enum_set.size()); i++ ) {
+//        if (appmc_res[i].cellSolCount <= 0) {
+//            continue;
+//        }
+//
+//        _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
+//        printf("appmc res: %lld es..\n",(1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount);
+//        _c = 0;
+//        for (auto it = data.begin(); _c < _tmp; _c++, it++) {
+//            if(result.find(*it)!=result.end()){
+//                result[*it]++;
+//            } else {
+//                result[*it]=1;
+//            }
+//        }
+//    }
 }
 
 ApproxMC::SolCount CNF::Counting(const CNF &origin, const  std::vector<CMSat::Lit>  & additional_clauses,
@@ -331,14 +386,35 @@ ApproxMC::SolCount CNF::Counting(const CNF &origin, const  std::vector<CMSat::Li
     return appmc -> count();
 }
 
+void callback(const std::vector<int> & solution, void* ptr_data) {
+    std::list<std::vector<int> > * callbackdata = (std::list<std::vector<int> > *)ptr_data;
+    auto it1 = solution.begin();
+//    auto it2 = callbackdata->it->begin();
+    std::vector<int> v2;
+//    auto it2 = v2.begin();
+    while (it1!=solution.end()){
+        if (*it1 > 0){
+            v2.push_back(*it1);
+        }
+        it1++;
+    }
+//    callbackdata->it ++;
+    callbackdata->emplace_back(v2);
+}
+
+
 void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCount & sol_count,
-                   Callback * ptr_) {
+                   std::list<std::vector<int> > * ptr_) {
     UniGen::UniG * unigen = new UniGen::UniG(appmc);
-    unigen -> set_callback(Callback::callback, ptr_);
+    unigen -> set_callback(callback, ptr_);
     unigen -> sample(&sol_count,  n_samples);
 
     delete unigen;
 }
+
+//void CNF::Recursive_Sampling(int n_samples, std::map<std::vector<int>, int> &result, std::vector<Callback> &data, Solver *, int threshold, int rule) {
+//
+//}
 
 
 
