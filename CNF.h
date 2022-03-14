@@ -65,7 +65,7 @@ public:
     std::vector<CMSat::Lit> Solve(bool =true);
 
     void Enum_Sampling(std::vector<uint32_t> starting_enum_set, int n_samples,
-                       std::list<std::vector<int> > & data, int threshold=100000, int rec_size = 10);
+                       std::list<std::vector<int> > & data, int threshold, int rec_size, int rec_min_s);
 
 //    void Recursive_Sampling(int n_samples, std::map<std::vector<int>,int> & result, std::vector<Callback> & data, Solver * ptr, int threshold = 100000, int rule = 0);
 
