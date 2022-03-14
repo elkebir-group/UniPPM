@@ -347,6 +347,7 @@ void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
 //
 //                std::cout << "UniGen: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count()
 //                          << std::endl << std::endl;
+                delete appmc;
             }
         }
 //        delete appmc;
