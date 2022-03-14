@@ -4,6 +4,8 @@
 
 #include "Solver.h"
 #include <map>
+#include <chrono>
+#include <utility>
 
 Solver::Solver(const AncestryGraph &in, int rec_size, int rec_T):F(),In(in),rec_size(rec_size),rec_T(rec_T){
 
@@ -161,6 +163,10 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
 //    F.Enum_Sampling(enumerate,n_sample, data, rec_T, rec_size);
     F.Enum_Sampling({},n_sample, data, rec_T, rec_size);
 
+    std::cout<<"[UniPPM] Sampling finished, sorting solutions. "<<std::endl;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
     data.sort();
 
     for (auto it = data.begin(), it_pre = data.begin();it!=data.end(); it++) {
@@ -182,10 +188,21 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
 //        }
     }
 
+    auto stop = std::chrono::high_resolution_clock::now();
+
+    std::cout << "[UniPPM] Sorting takes "
+              << (std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count())/1e6
+              << " seconds.\n[UniPPM] Verifying solutions."<< std::endl;
+
     for(auto it=unigen_res.begin();it!=unigen_res.end();it++){
         interpret(it->first, tmp);
         res[tmp] = it->second;
     }
+
+    start = std::chrono::high_resolution_clock::now();
+    std::cout << "[UniPPM] Verifying takes "
+              << (std::chrono::duration_cast<std::chrono::microseconds>(start - stop).count())/1e6
+              << " seconds."<< std::endl;
 }
 
 
