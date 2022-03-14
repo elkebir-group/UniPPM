@@ -323,13 +323,12 @@ void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
         }
         if (appmc_res[i].cellSolCount > 0) {
 
-            appmc = new ApproxMC::AppMC;
-            Counting(*this, additional_clauses, appmc);
-
             _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
 
             if(threshold>0 && (threshold>>appmc_res[i].hashCount) <= appmc_res[i].cellSolCount) {
 
+                std::cout << "[UniPPM] rec_call: (" << (1LL << appmc_res[i].hashCount) * appmc_res[i].cellSolCount
+                          << " solutions, " << _tmp << "samples)" << std::endl;
                 CNF rec_F(*this);
                 for (auto it = additional_clauses.begin(); it != additional_clauses.end(); it++) {
                     rec_F.clauses.push_back({*it});
@@ -339,8 +338,13 @@ void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
                 rec_F.Enum_Sampling({}, _tmp, data, threshold, rec_size);
             }
             else {
-                auto start = std::chrono::high_resolution_clock::now();
+                appmc = new ApproxMC::AppMC;
+                Counting(*this, additional_clauses, appmc);
 
+                std::cout << "[UniPPM] sampling with unigen: ("
+                          << (1LL << appmc_res[i].hashCount) * appmc_res[i].cellSolCount << " solutions, " << _tmp
+                          << "samples)" << std::endl;
+                auto start = std::chrono::high_resolution_clock::now();
                 Sampling(_tmp, appmc, appmc_res[i], &data);
                 auto stop = std::chrono::high_resolution_clock::now();
 
