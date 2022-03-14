@@ -4,7 +4,6 @@
 
 #include "Solver.h"
 #include <map>
-#include "Callback.h"
 
 Solver::Solver(const AncestryGraph &in, int N_threads = 0):F(),In(in){
 
@@ -158,8 +157,17 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
 
     std::map<std::vector<int>, int> unigen_res;
     std::vector<std::pair<int,int> > tmp;
-    std::vector<Callback> data(1<<enumerate.size(),Callback(In.In.n-1, 2*n_sample));
-    F.Enum_Sampling(enumerate,n_sample,unigen_res, data);
+    std::list<std::vector<int> > data;
+    F.Enum_Sampling(enumerate,n_sample, data);
+
+    for (auto it = data.begin(); it!=data.end(); it++) {
+        if (unigen_res.find(*it) != unigen_res.end()) {
+            unigen_res[*it]++;
+        } else {
+            unigen_res[*it] = 1;
+        }
+    }
+
     for(auto it=unigen_res.begin();it!=unigen_res.end();it++){
         interpret(it->first, tmp);
         res[tmp] = it->second;
