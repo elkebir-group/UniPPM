@@ -8,7 +8,6 @@
 #include <chrono>
 #include <algorithm>
 #include <utility>
-#include "Callback.h"
 
 CNF::CNF():True(CMSat::Lit(0, false)),False(CMSat::Lit(0, true)),
 minisat(NULL), //appmc(NULL), unigen(NULL),
