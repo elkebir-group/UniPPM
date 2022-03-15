@@ -447,7 +447,7 @@ void CNF::UniPPM_Sampling(int n_samples, std::pair<int,int> rec_para, Solver *pt
         if (!appmc_res[i]) continue;
         _tmp = appmc_res[i]*n_samples/tot_sol+1;
         if (appmc_res[i] > threshold.first && _tmp > threshold.second) {
-            std::cout << "[UniPPM][" << info_tag << "] rec_call: ("
+            std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": rec_call: ("
                       << appmc_res[i] << " solutions, " << _tmp << " samples)" << std::endl;
             CNF rec_F(*this);
             rec_F.info_tag+=std::to_string(i);
@@ -460,7 +460,7 @@ void CNF::UniPPM_Sampling(int n_samples, std::pair<int,int> rec_para, Solver *pt
         else {
             appmc = new ApproxMC::AppMC;
 
-            std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
+            std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": sampling with unigen: ("
                       << appmc_res[i] << " solutions, " << _tmp << " samples)" << std::endl;
             Sampling(_tmp, appmc,
                      Counting(*this, additional_clauses[i], appmc), &data);
