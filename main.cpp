@@ -79,12 +79,12 @@ void parse_argument(int argc,char * argv[]){
         switch ((*it)[1]) {
             case 'i':
                 cerr << "Input file" << endl;
-                input_file = "input.txt";
-//                exit(1);
+//                input_file = "input.txt";
+                exit(1);
             case 'o':
                 cerr << "Output file" <<endl;
-                output_file = "tmp.txt";
-//                exit(1);
+//                output_file = "tmp.txt";
+                exit(1);
             case 'n':
                 n_samples = 20000;
                 break;
@@ -124,7 +124,7 @@ int main(int argc, char * argv[]) {
     Input_Reads raw_in(input_file.c_str());
 
     if (rec_size<0) {
-        rec_size = 3;
+        rec_size = 2;
     }
     if (rec_T<0) {
         if (raw_in.n <= 10) rec_T = 1 << 11;
