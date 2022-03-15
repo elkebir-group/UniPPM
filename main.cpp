@@ -131,7 +131,7 @@ int main(int argc, char * argv[]) {
         else rec_T = 1 << (raw_in.n +1);
     }
     if (rec_min<0){
-        rec_min = 2*pow(raw_in.n - 1,max(rec_size,2));
+        rec_min = 5*pow(raw_in.n - 1,max(rec_size,2));
     }
 
     std::cout<<"[UniPPM] recursive: var_size: "<<rec_size
@@ -187,7 +187,7 @@ int main(int argc, char * argv[]) {
     Input transform_in(raw_in,pow(t_alpha,1.0/(raw_in.n*raw_in.m)));
     Input_int in(transform_in,n_bits);
     AncestryGraph Gf(in);
-    Solver solver(Gf,rec_size,rec_T);
+    Solver solver(Gf,rec_size,rec_T,rec_min);
     Likelihood LLH(in,raw_in,n_bits);
 
     map<vector<pair<int,int> >,int> res;

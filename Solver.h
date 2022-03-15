@@ -15,7 +15,7 @@
 class Solver {
     friend class CNF;
 public:
-    explicit Solver(const AncestryGraph & In, int rec_size=4, int rec_T=100000, int rec_min=4000);
+    explicit Solver(const AncestryGraph & In, int rec_size=4, int rec_T=10000, int rec_min=500);
 
     ~Solver();
 
