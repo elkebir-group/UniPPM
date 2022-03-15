@@ -7,7 +7,8 @@
 #include <chrono>
 #include <utility>
 
-Solver::Solver(const AncestryGraph &in, int rec_size, int rec_T):F(),In(in),rec_size(rec_size),rec_T(rec_T){
+Solver::Solver(const AncestryGraph &in, int rec_size, int rec_T, int rec_min):F(),In(in),rec_size(rec_size),
+rec_para(rec_T,rec_min){
 
     std::vector<CMSat::Lit> r_vars;
     if (In.In.r < 0){
@@ -21,7 +22,6 @@ Solver::Solver(const AncestryGraph &in, int rec_size, int rec_T):F(),In(in),rec_
         var2edge[var] = In.E[i];
         edge2var[In.E[i]] = CMSat::Lit(var,false);
     }
-
 
     // exact one parent, except root
     for (int j = 0; j < In.In.n; j++) {
@@ -39,6 +39,7 @@ Solver::Solver(const AncestryGraph &in, int rec_size, int rec_T):F(),In(in),rec_
         for (int i = 0; i < In.ind(j).size(); i++) {
             int i_ = In.ind(j)[i];
             *it = edge2var[std::pair<int, int>(i_, j)];
+
             it++;
         }
         F.Exact_One(j_p);
@@ -161,7 +162,10 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
     std::vector<std::pair<int,int> > tmp;
     std::list<std::vector<int> > data;
 //    F.Enum_Sampling(enumerate,n_sample, data, rec_T, rec_size);
-    F.Enum_Sampling({},n_sample, data, rec_T, rec_size);
+//    F.Enum_Sampling({},n_sample, data, rec_T, rec_size);
+    set_up_recursive();
+
+    F.UniPPM_Sampling(n_sample,std::pair(0,rec_size),this,data,rec_para);
 
     std::cout<<"[UniPPM] Sampling finished, sorting solutions. "<<std::endl;
 
@@ -181,11 +185,6 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
             unigen_res.back().second++;
         }
         it_pre++;
-//        if (unigen_res.find(*it) != unigen_res.end()) {
-//            unigen_res[*it]++;
-//        } else {
-//            unigen_res[*it] = 1;
-//        }
     }
 
     auto stop = std::chrono::high_resolution_clock::now();
@@ -204,6 +203,35 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
               << (std::chrono::duration_cast<std::chrono::microseconds>(start - stop).count())/1e6
               << " seconds."<< std::endl;
 }
+
+void Solver::set_up_recursive() {
+    std::vector<int> step_order(In.In.n);
+    CNF_recursive_sets.resize(In.In.n);
+    for (int i = 0; i < In.In.n; i++){
+        step_order[i] = i;
+    }
+
+    struct comp{
+        bool operator()(const int & a, const int &b) const{
+            return ptr->In.ind(a).size() > ptr->In.ind(b).size();
+        }
+        Solver * ptr;
+        comp(Solver * ptr):ptr(ptr){}
+    };
+
+    std::sort(step_order.begin(),step_order.end(),comp(this));
+
+    for (int i=0;i<step_order.size();i++){
+        if (In.ind(step_order[i]).empty()) {
+            CNF_recursive_sets.resize(i);
+            break;
+        }
+        for(auto j: In.ind(step_order[i])){//j,i
+            CNF_recursive_sets[i].push_back(edge2var[std::pair(j,step_order[i])].var());
+        }
+    }
+}
+
 
 
 

@@ -23,11 +23,11 @@ int n_samples,n_bits,n_intervals;
 double approx_coef = -1, help_approx_coef;
 long long seed;
 
-int rec_size,rec_T;
+int rec_size,rec_T,rec_min;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-R","-T"});
+    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-R","-T","-M"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -70,6 +70,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'T':
                 rec_T = stoi(it->second);
+                break;
+            case 'M':
+                rec_min = stoi(it->second);
         }
     }
     for (auto it = p_options.begin();it!=p_options.end();it++) {
@@ -108,6 +111,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'T':
                 rec_T = -1;
+                break;
+            case 'M':
+                rec_min = -1;
         }
     }
     srand(seed);
@@ -118,16 +124,19 @@ int main(int argc, char * argv[]) {
     Input_Reads raw_in(input_file.c_str());
 
     if (rec_size<0) {
-        rec_size = raw_in.n - 1;
+        rec_size = 4;
     }
     if (rec_T<0) {
-        if (rec_size < 10) rec_T = 1 << 11;
-        else if (rec_size < 13) rec_T = 1 << (2*rec_size - 8);
-        else if (rec_size < 15) rec_T = 1 << 17;
-        else rec_T = 1 << 18;
+        if (raw_in.n <= 10) rec_T = 1 << 11;
+        else rec_T = 1 << (2*raw_in.n - 9);
+    }
+    if (rec_min<0){
+        rec_min = rec_size*pow((double)raw_in.n,rec_size/2.0)/2;
     }
 
-    std::cout<<"[UniPPM] recursive: var_size: "<<rec_size<<", rec_threshold: "<<rec_T<<"."<<endl;
+    std::cout<<"[UniPPM] recursive: var_size: "<<rec_size
+                          <<", rec_threshold: "<<rec_T
+                          <<", rec_min_sample: "<<rec_min<<"."<<endl;
 
     double l_a = EPS,r_a = 1-EPS, t_alpha;
     vector<pair<int,int> > edges;
@@ -154,7 +163,7 @@ int main(int argc, char * argv[]) {
 
 
     double target = llh/help_approx_coef, filtering = llh/approx_coef;
-    cout<<"estimate lowerbound of log likelihood: "<<llh<<", target llh: "<<target<<endl;
+    cout<<"[UniPPM] estimate lowerbound of log likelihood: "<<llh<<", target llh: "<<target<<endl;
 
     l_a = EPS,r_a = 1-EPS;
     double lower_bound_ll = 1e300;
@@ -167,13 +176,13 @@ int main(int argc, char * argv[]) {
             r_a = m_a;
     }
     if (m_a < t_alpha){
-        cout<<"approx alpha overrided by min alpha"<<endl;
+        cout<<"[UniPPM] approx alpha overrided by min alpha"<<endl;
     }
     else{
         t_alpha = m_a;
     }
 #undef m_a
-    cout<<"using "<< t_alpha << " as the final alpha."<<endl;
+    cout<<"[UniPPM] using "<< t_alpha << " as the final alpha."<<endl;
 
     Input transform_in(raw_in,pow(t_alpha,1.0/(raw_in.n*raw_in.m)));
     Input_int in(transform_in,n_bits);

@@ -64,10 +64,11 @@ public:
 
     std::vector<CMSat::Lit> Solve(bool =true);
 
-    void Enum_Sampling(std::vector<uint32_t> starting_enum_set, int n_samples,
-                       std::list<std::vector<int> > & data, int threshold=100000, int rec_size = 10);
+//    void Enum_Sampling(std::vector<uint32_t> starting_enum_set, int n_samples,
+//                       std::list<std::vector<int> > & data, int threshold, int rec_size);
 
-//    void Recursive_Sampling(int n_samples, std::map<std::vector<int>,int> & result, std::vector<Callback> & data, Solver * ptr, int threshold = 100000, int rule = 0);
+    void UniPPM_Sampling(int n_samples, std::pair<int,int> rec_para, Solver*ptr, std::list<std::vector<int> >& data,
+                         std::pair<int,int> threshold);
 
     static ApproxMC::SolCount Counting(const CNF & origin, const std::vector<CMSat::Lit> & additional_clauses,
                          ApproxMC::AppMC* appmc, int = 1);
@@ -80,7 +81,8 @@ private:
     int n_variables;
     std::vector<uint32_t> ind_vs;
     CMSat::SATSolver *minisat;
-    std::vector<uint32_t> remain;
+//    std::vector<uint32_t> remain;
+    std::string info_tag;
 };
 
 

@@ -13,9 +13,9 @@
 #include <mutex>
 
 class Solver {
-    friend class Parallel_Solver;
+    friend class CNF;
 public:
-    Solver(const AncestryGraph & In, int rec_size = 10, int rec_T = 100000);
+    explicit Solver(const AncestryGraph & In, int rec_size=4, int rec_T=100000, int rec_min=4000);
 
     ~Solver();
 
@@ -30,7 +30,11 @@ public:
     
     void interpret(const std::vector<int> & vars, std::vector<std::pair<int,int> > & ans);
 
+    void set_up_recursive();
+
 private:
+
+    std::vector<std::vector<uint32_t> > CNF_recursive_sets;
 
     std::map<int,std::pair<int,int> > var2edge;
     std::map<std::pair<int,int>, CMSat::Lit> edge2var;
@@ -39,8 +43,8 @@ private:
 
     CNF F;
 
-    int rec_size, rec_T;
-
+    int rec_size;
+    std::pair<int,int> rec_para;
 };
 
 
