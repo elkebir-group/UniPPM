@@ -124,14 +124,14 @@ int main(int argc, char * argv[]) {
     Input_Reads raw_in(input_file.c_str());
 
     if (rec_size<0) {
-        rec_size = 4;
+        rec_size = 3;
     }
     if (rec_T<0) {
         if (raw_in.n <= 10) rec_T = 1 << 11;
         else rec_T = 1 << (2*raw_in.n - 9);
     }
     if (rec_min<0){
-        rec_min = rec_size*pow((double)raw_in.n,rec_size/2.0)/2;
+        rec_min = 200;
     }
 
     std::cout<<"[UniPPM] recursive: var_size: "<<rec_size
