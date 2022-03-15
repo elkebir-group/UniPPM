@@ -205,23 +205,23 @@ int main(int argc, char * argv[]) {
 
 //    stringstream sout;
 
-    ofstream fout(output_file);
+//    ofstream fout(output_file);
+    FILE * fout = fopen(output_file.c_str(),"w");
     for(auto it = res.begin();it!=res.end();it++) {
         double ll = LLH.LLH(it->first);
         if (ll < filtering){
             continue;
         }
-        fout<< "#" <<(it->first.size())<<" edges, tree "<<unique<<", "<<(it->second)<<" samples, log-likelihood:"<<ll<<'\n';
+        fprintf(fout,"# %d edges, tree %d, %d sample, log-likelihood: %lf\n",raw_in.n-1,unique,it->second,ll);
         unique ++ ;
         total += it->second;
         for(auto edge:it->first){
-            fout<<edge.first<<' '<<edge.second<<'\n';
+            fprintf(fout,"%d %d\n",edge.first,edge.second);
         }
     }
 
-    fout<<"#"<<total<<" trees, #"<<unique<<" unique trees"<<endl;
-//    fout<<sout.str()<<endl;
+    fprintf(fout,"# %d samples, # %d unique trees\n",total,unique);
 
-    fout.close();
+    fclose(fout);
     return 0;
 }
