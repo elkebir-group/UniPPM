@@ -165,7 +165,10 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
 //    F.Enum_Sampling({},n_sample, data, rec_T, rec_size);
     set_up_recursive();
 
-    F.UniPPM_Sampling(n_sample,std::pair(0,rec_size),this,data,rec_para);
+    auto appmc = new ApproxMC::AppMC;
+    auto Counting = CNF::Counting(F,{},appmc);
+
+    F.UniPPM_Sampling(Counting,n_sample,std::pair(0,rec_size),this,data,rec_para);
 
     std::cout<<"[UniPPM] Sampling finished, sorting solutions. "<<std::endl;
 

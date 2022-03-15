@@ -413,18 +413,22 @@ void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCou
     delete unigen;
 }
 
-void CNF::UniPPM_Sampling(int n_samples, std::pair<int,int> rec_para, Solver *ptr, std::list<std::vector<int> > &data,
+void CNF::UniPPM_Sampling(const ApproxMC::SolCount& count, int n_samples,
+                          std::pair<int,int> rec_para, Solver *ptr, std::list<std::vector<int> > &data,
                           std::pair<int,int> threshold) {
     ApproxMC::AppMC* appmc;
     int cases = 1;
+    long long total = (1LL<<count.hashCount)*count.cellSolCount;
+    std::cout << "[UniPPM][" << info_tag << "] getting "<<n_samples<<" samples from "<<total<<" (estimated) solutions."<<std::endl;
+
     rec_para.second = std::min(rec_para.second,(int)(ptr->CNF_recursive_sets.size())-rec_para.first);
     for (int i = 0; i < rec_para.second; i++){
         cases*=ptr->CNF_recursive_sets[rec_para.first+i].size();
     }
-    std::vector<long long> appmc_res (cases);
+
+    std::vector<ApproxMC::SolCount> appmc_res (cases);
     std::vector<std::vector<CMSat::Lit> > additional_clauses(cases,std::vector<CMSat::Lit>(rec_para.second));
 
-    long long tot_sol = 0;
     for (int i = 0; i < cases; i++){
         for (int j = 0, tmp=i; j < rec_para.second; j++){
             auto val = ptr->CNF_recursive_sets[rec_para.first+j][tmp%ptr->CNF_recursive_sets[rec_para.first+j].size()];
@@ -435,37 +439,29 @@ void CNF::UniPPM_Sampling(int n_samples, std::pair<int,int> rec_para, Solver *pt
     std::cout << "[UniPPM][" << info_tag << "] enumerating "<<cases<<" cases"<<std::endl;
     for(int i = 0; i < cases; i++){
         appmc = new ApproxMC::AppMC;
-        auto res = Counting(*this, additional_clauses[i],appmc);
-        appmc_res[i] = (1LL<<res.hashCount)*res.cellSolCount;
-        if (appmc_res[i]){
-            std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": est_sol:"<<appmc_res[i]<<std::endl;
-        }
-        tot_sol += appmc_res[i];
-        delete appmc;
-    }
-    for(int i = 0,_tmp; i < cases; i++){
-        if (!appmc_res[i]) continue;
-        _tmp = appmc_res[i]*n_samples/tot_sol+1;
-        if (appmc_res[i] > threshold.first && _tmp > threshold.second) {
-            std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": rec_call: ("
-                      << appmc_res[i] << " solutions, " << _tmp << " samples)" << std::endl;
-            CNF rec_F(*this);
-            rec_F.info_tag+=std::to_string(i);
-            for (auto it = additional_clauses[i].begin(); it != additional_clauses[i].end(); it++) {
-                rec_F.clauses.push_back({*it});
-            }
-            rec_F.UniPPM_Sampling(_tmp, std::pair(rec_para.first + rec_para.second, rec_para.second),
-                                  ptr, data, threshold);
-        }
-        else {
-            appmc = new ApproxMC::AppMC;
+        appmc_res[i] = Counting(*this, additional_clauses[i],appmc);
+        if (appmc_res[i].cellSolCount){
+            long long case_sol = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
+            std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": est_sol:"<<case_sol<<std::endl;
 
-            std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": sampling with unigen: ("
-                      << appmc_res[i] << " solutions, " << _tmp << " samples)" << std::endl;
-            Sampling(_tmp, appmc,
-                     Counting(*this, additional_clauses[i], appmc), &data);
-            delete appmc;
+            int _tmp = case_sol*n_samples/total+1;
+            if (case_sol > threshold.first && _tmp > threshold.second) {
+                CNF rec_F(*this);
+                rec_F.info_tag+=std::to_string(i);
+                for (auto it = additional_clauses[i].begin(); it != additional_clauses[i].end(); it++) {
+                    rec_F.clauses.push_back({*it});
+                }
+                rec_F.UniPPM_Sampling(appmc_res[i],_tmp,
+                                      std::pair(rec_para.first + rec_para.second, rec_para.second),
+                                      ptr, data, threshold);
+            }
+            else {
+                std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": sampling with unigen: ("
+                          << case_sol << " solutions, " << _tmp << " samples)" << std::endl;
+                Sampling(_tmp, appmc,appmc_res[i], &data);
+            }
         }
+        delete appmc;
     }
 }
 
