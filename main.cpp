@@ -124,11 +124,12 @@ int main(int argc, char * argv[]) {
     Input_Reads raw_in(input_file.c_str());
 
     if (rec_size<0) {
-        rec_size = 2;
+        rec_size = raw_in.n/5;
+        rec_size = max(rec_size,1);
     }
     if (rec_T<0) {
-        if (raw_in.n <= 10) rec_T = 1 << 11;
-        else rec_T = 1 << (raw_in.n +1);
+        int _p = max(10,raw_in.n);
+        rec_T = 1 << (_p + 3);
     }
     if (rec_min<0){
         rec_min = 2*pow(raw_in.n - 1,max(rec_size,2));
