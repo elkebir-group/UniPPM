@@ -452,7 +452,7 @@ void CNF::UniPPM_Sampling(const ApproxMC::SolCount& count, int n_samples,
                     rec_F.clauses.push_back({*it});
                 }
                 rec_F.UniPPM_Sampling(appmc_res[i],_tmp,
-                                      std::pair(rec_para.first + rec_para.second, rec_para.second),
+                                      std::pair(rec_para.first + rec_para.second, std::max(rec_para.second-1,1)),
                                       ptr, data, threshold);
             }
             else {

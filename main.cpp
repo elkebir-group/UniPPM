@@ -132,7 +132,7 @@ int main(int argc, char * argv[]) {
         rec_T = 1 << (_p + 3);
     }
     if (rec_min<0){
-        rec_min = 2*pow(raw_in.n - 1,max(rec_size,2));
+        rec_min = 5*pow(raw_in.n - 1,2);
     }
 
     std::cout<<"[UniPPM] recursive: var_size: "<<rec_size
@@ -206,6 +206,7 @@ int main(int argc, char * argv[]) {
 //    stringstream sout;
 
 //    ofstream fout(output_file);
+    cout<<"[UniPPM] calculating likelihood."<<endl;
     FILE * fout = fopen(output_file.c_str(),"w");
     for(auto it = res.begin();it!=res.end();it++) {
         double ll = LLH.LLH(it->first);
