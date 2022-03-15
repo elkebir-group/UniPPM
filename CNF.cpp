@@ -20,7 +20,7 @@ info_tag("0")
 CNF::CNF(const CNF & cp):True(CMSat::Lit(0, false)),False(CMSat::Lit(0, true)),
 minisat(NULL), //appmc(NULL), unigen(NULL),
 clauses(cp.clauses), n_variables(cp.n_variables), ind_vs(cp.ind_vs),//Results(callbackdata)
-info_tag(cp.info_tag)
+info_tag(cp.info_tag+".")
 {
 }
 
@@ -432,10 +432,14 @@ void CNF::UniPPM_Sampling(int n_samples, std::pair<int,int> rec_para, Solver *pt
             tmp/=ptr->CNF_recursive_sets[rec_para.first+j].size();
         }
     }
+    std::cout << "[UniPPM][" << info_tag << "] enumerating "<<cases<<" cases"<<std::endl;
     for(int i = 0; i < cases; i++){
         appmc = new ApproxMC::AppMC;
         auto res = Counting(*this, additional_clauses[i],appmc);
         appmc_res[i] = (1LL<<res.hashCount)*res.cellSolCount;
+        if (appmc_res[i]){
+            std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": est_sol:"<<appmc_res[i]<<std::endl;
+        }
         tot_sol += appmc_res[i];
         delete appmc;
     }

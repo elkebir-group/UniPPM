@@ -79,12 +79,12 @@ void parse_argument(int argc,char * argv[]){
         switch ((*it)[1]) {
             case 'i':
                 cerr << "Input file" << endl;
-//                input_file = "input.txt";
-                exit(1);
+                input_file = "input.txt";
+//                exit(1);
             case 'o':
                 cerr << "Output file" <<endl;
-//                output_file = "tmp.txt";
-                exit(1);
+                output_file = "tmp.txt";
+//                exit(1);
             case 'n':
                 n_samples = 20000;
                 break;
@@ -124,14 +124,14 @@ int main(int argc, char * argv[]) {
     Input_Reads raw_in(input_file.c_str());
 
     if (rec_size<0) {
-        rec_size = 3;
+        rec_size = 2;
     }
     if (rec_T<0) {
         if (raw_in.n <= 10) rec_T = 1 << 11;
         else rec_T = 1 << (2*raw_in.n - 9);
     }
     if (rec_min<0){
-        rec_min = 200;
+        rec_min = 2*pow(raw_in.n,rec_size);
     }
 
     std::cout<<"[UniPPM] recursive: var_size: "<<rec_size
