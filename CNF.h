@@ -67,7 +67,7 @@ public:
 //    void Enum_Sampling(std::vector<uint32_t> starting_enum_set, int n_samples,
 //                       std::list<std::vector<int> > & data, int threshold, int rec_size);
 
-    void UniPPM_Sampling(const ApproxMC::SolCount& count, int n_samples,
+    void UniPPM_Sampling(ApproxMC::SolCount * count, int n_samples,
                          std::pair<int,int> rec_para, Solver*ptr, std::list<std::vector<int> >& data,
                          std::pair<int,int> threshold);
 

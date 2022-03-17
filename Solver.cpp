@@ -166,9 +166,16 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
     set_up_recursive();
 
     auto appmc = new ApproxMC::AppMC;
-    auto Counting = CNF::Counting(F,{},appmc);
+    if (In.In.n>=15){
+        F.UniPPM_Sampling(nullptr,n_sample,std::pair(0,rec_size),this,data,rec_para);
+    }
+    else{
+        auto Counting = CNF::Counting(F,{},appmc);
+        F.UniPPM_Sampling(&Counting,n_sample,std::pair(0,rec_size),this,data,rec_para);
+    }
 
-    F.UniPPM_Sampling(Counting,n_sample,std::pair(0,rec_size),this,data,rec_para);
+
+
 
     std::cout<<"[UniPPM] Sampling finished, sorting solutions. "<<std::endl;
 

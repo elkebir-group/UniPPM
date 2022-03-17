@@ -413,13 +413,22 @@ void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCou
     delete unigen;
 }
 
-void CNF::UniPPM_Sampling(const ApproxMC::SolCount& count, int n_samples,
+void CNF::UniPPM_Sampling(ApproxMC::SolCount * count, int n_samples,
                           std::pair<int,int> rec_para, Solver *ptr, std::list<std::vector<int> > &data,
                           std::pair<int,int> threshold) {
     ApproxMC::AppMC* appmc;
     int cases = 1;
-    long long total = (1LL<<count.hashCount)*count.cellSolCount;
-    std::cout << "[UniPPM][" << info_tag << "] getting "<<n_samples<<" samples from "<<total<<" (estimated) solutions."<<std::endl;
+    long long total;
+    if (count == nullptr) {
+        total = 0;
+        std::cout << "[UniPPM][" << info_tag << "] getting " << n_samples << " samples. " << std::endl;
+    }
+    else {
+        total = (1LL << count->hashCount) * count->cellSolCount;
+        std::cout << "[UniPPM][" << info_tag << "] getting " << n_samples << " samples from " << total
+                  << " (estimated) solutions." << std::endl;
+    }
+
 
     rec_para.second = std::min(rec_para.second,(int)(ptr->CNF_recursive_sets.size())-rec_para.first);
     for (int i = 0; i < rec_para.second; i++){
@@ -443,15 +452,15 @@ void CNF::UniPPM_Sampling(const ApproxMC::SolCount& count, int n_samples,
         if (appmc_res[i].cellSolCount){
             long long case_sol = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
             std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": est_sol:"<<case_sol<<std::endl;
+            int _tmp = total ? (case_sol * n_samples / total + 1) : (n_samples / cases + 1);
 
-            int _tmp = case_sol*n_samples/total+1;
             if (case_sol > threshold.first && _tmp > threshold.second) {
                 CNF rec_F(*this);
                 rec_F.info_tag+=std::to_string(i);
                 for (auto it = additional_clauses[i].begin(); it != additional_clauses[i].end(); it++) {
                     rec_F.clauses.push_back({*it});
                 }
-                rec_F.UniPPM_Sampling(appmc_res[i],_tmp,
+                rec_F.UniPPM_Sampling(&appmc_res[i],_tmp,
                                       std::pair(rec_para.first + rec_para.second, std::max(rec_para.second-1,1)),
                                       ptr, data, threshold);
             }
