@@ -166,7 +166,7 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
     set_up_recursive();
 
     auto appmc = new ApproxMC::AppMC;
-    if (In.In.n>=15){
+    if (In.In.n >=15 && In.In.n/In.In.m>=10){
         F.UniPPM_Sampling(nullptr,n_sample,std::pair(0,rec_size),this,data,rec_para);
     }
     else{
