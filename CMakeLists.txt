@@ -28,7 +28,7 @@ set( CommonLibs m ${CRYPTOMINISAT5_LIBRARIES} ${APPROXMC_LIBRARIES} ${UNIGEN_LIB
 add_executable(unippm main.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h) #Parallel.cpp Parallel.h)
 #add_executable(test test.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h)
 
-add_executable(test test.cpp)
+#add_executable(test test.cpp)
 
 target_link_libraries(unippm ${CommonLibs} Boost::boost ortools::ortools)
 
