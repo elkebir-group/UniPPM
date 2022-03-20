@@ -330,7 +330,7 @@ void CNF::UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMS
 
         root->appmc->destructible().lock();
 
-        std::cerr<<"deleting appmc."<<std::endl;
+//        std::cerr<<"deleting appmc."<<std::endl;
         delete root->appmc;
         root->appmc = nullptr;
         root->n=ptr->CNF_recursive_sets[rec_para].size();
