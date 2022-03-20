@@ -307,7 +307,7 @@ void CNF::UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMS
     root->appmc = new ApproxMC::AppMC;
     std::cout << "[UniPPM][" << info_tag << "] Estimating solutions.."<<std::endl;
     std::thread count_t(Counting,std::ref(*this),std::ref(additional_clauses),root->appmc,
-                        std::ref(root->res),2);
+                        std::ref(root->res),1);
 
 //    count_t.join();
 //    root->count = (1LL<<root->res->hashCount)*root->res->cellSolCount;
