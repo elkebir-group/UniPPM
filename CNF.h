@@ -67,23 +67,42 @@ public:
 //    void Enum_Sampling(std::vector<uint32_t> starting_enum_set, int n_samples,
 //                       std::list<std::vector<int> > & data, int threshold, int rec_size);
 
-    void UniPPM_Sampling(ApproxMC::SolCount * count, int n_samples,
-                         std::pair<int,int> rec_para, Solver*ptr, std::list<std::vector<int> >& data,
-                         std::pair<int,int> threshold);
+//    void UniPPM_Sampling(ApproxMC::SolCount * count, int n_samples,
+//                         std::pair<int,int> rec_para, Solver*ptr, std::list<std::vector<int> >& data,
+//                         std::pair<int,int> threshold);
 
-    static ApproxMC::SolCount Counting(const CNF & origin, const std::vector<CMSat::Lit> & additional_clauses,
-                         ApproxMC::AppMC* appmc, int = 1);
+    struct rec_node{
+        ApproxMC::SolCount * res;
+        ApproxMC::AppMC * appmc;
+        rec_node * splits;
+        int n;
+        long long count;
+        rec_node():res(nullptr),appmc(nullptr),splits(nullptr),count(0){}
+        ~rec_node(){delete splits; delete res;}
+    };
+
+    void UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMSat::Lit> & additional_clauses,
+                          rec_node *root = nullptr, const std::string & info_tag = "0");
+
+    void UniPPM_Sampling(int n_samples, std::list<std::vector<int> > &data, rec_node *root = nullptr,
+                         const std::string & info_tage = "0");
+
+    static void Counting(const CNF & origin, const std::list<CMSat::Lit> & additional_clauses,
+                         ApproxMC::AppMC *appmc, ApproxMC::SolCount *&res, int = 1);
 
     static void Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCount &sol_count,
                          std::list<std::vector<int> > *ptr_);
 
 private:
+
+    rec_node root;
+
     std::vector< std::vector<CMSat::Lit> > clauses;
     int n_variables;
     std::vector<uint32_t> ind_vs;
     CMSat::SATSolver *minisat;
 //    std::vector<uint32_t> remain;
-    std::string info_tag;
+//    std::string info_tag;
 };
 
 

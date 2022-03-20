@@ -7,8 +7,7 @@
 #include <chrono>
 #include <utility>
 
-Solver::Solver(const AncestryGraph &in, int rec_size, int rec_T, int rec_min):F(),In(in),rec_size(rec_size),
-rec_para(rec_T,rec_min){
+Solver::Solver(const AncestryGraph &in, int timeout):F(),In(in),timeout(timeout){
 
     std::vector<CMSat::Lit> r_vars;
     if (In.In.r < 0){
@@ -161,25 +160,15 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
     std::list<std::pair<std::vector<int>, int> >  unigen_res;
     std::vector<std::pair<int,int> > tmp;
     std::list<std::vector<int> > data;
-//    F.Enum_Sampling(enumerate,n_sample, data, rec_T, rec_size);
-//    F.Enum_Sampling({},n_sample, data, rec_T, rec_size);
+    std::list<CMSat::Lit> tmp_cs;
+
     set_up_recursive();
 
-    auto appmc = new ApproxMC::AppMC;
-    if (In.In.n >=15 && In.In.n/In.In.m>=10){
-        F.UniPPM_Sampling(nullptr,n_sample,std::pair(0,rec_size),this,data,rec_para);
-    }
-    else{
-        auto Counting = CNF::Counting(F,{},appmc);
-        F.UniPPM_Sampling(&Counting,n_sample,std::pair(0,rec_size),this,data,rec_para);
-    }
+    F.UniPPM_Preparing(timeout,0,this,tmp_cs);
 
-
-
+    F.UniPPM_Sampling(n_sample,data);
 
     std::cout<<"[UniPPM] Sampling finished, sorting solutions. "<<std::endl;
-
-    auto start = std::chrono::high_resolution_clock::now();
 
     data.sort();
 
@@ -197,21 +186,12 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
         it_pre++;
     }
 
-    auto stop = std::chrono::high_resolution_clock::now();
-
-    std::cout << "[UniPPM] Sorting takes "
-              << (std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count())/1e6
-              << " seconds.\n[UniPPM] Verifying solutions."<< std::endl;
 
     for(auto it=unigen_res.begin();it!=unigen_res.end();it++){
         interpret(it->first, tmp);
         res[tmp] = it->second;
     }
 
-    start = std::chrono::high_resolution_clock::now();
-    std::cout << "[UniPPM] Verifying takes "
-              << (std::chrono::duration_cast<std::chrono::microseconds>(start - stop).count())/1e6
-              << " seconds."<< std::endl;
 }
 
 void Solver::set_up_recursive() {

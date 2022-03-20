@@ -7,20 +7,20 @@
 #include <algorithm>
 #include <cassert>
 #include "Solver.h"
+#include <pthread.h>
+#include <thread>
 
 CNF::CNF():True(CMSat::Lit(0, false)),False(CMSat::Lit(0, true)),
 minisat(NULL), //appmc(NULL), unigen(NULL),
 n_variables(1), //Results(callbackdata),
 clauses({std::vector<CMSat::Lit>{ CMSat::Lit(0, false)} }),
-ind_vs(),
-info_tag("0")
+ind_vs()
 {
 }
 
 CNF::CNF(const CNF & cp):True(CMSat::Lit(0, false)),False(CMSat::Lit(0, true)),
 minisat(NULL), //appmc(NULL), unigen(NULL),
-clauses(cp.clauses), n_variables(cp.n_variables), ind_vs(cp.ind_vs),//Results(callbackdata)
-info_tag(cp.info_tag+".")
+clauses(cp.clauses), n_variables(cp.n_variables), ind_vs(cp.ind_vs)//Results(callbackdata)
 {
 }
 
@@ -254,126 +254,8 @@ std::vector<CMSat::Lit> CNF::Solve(bool ind) {
 CNF::~CNF() {
 }
 
-//void CNF::Enum_Sampling(std::vector<uint32_t> enum_set, int n_samples,
-//                        std::list<std::vector<int> > & data, int threshold, int rec_size) {
-////    std::vector<ApproxMC::AppMC*> appmcs (1<<enum_set.size());
-//
-//    if (enum_set.empty()){
-//        rec_size = std::min(rec_size,(int)(remain.size()));
-//        std::shuffle(remain.begin(),remain.end(),std::mt19937{std::random_device{}()});
-//        enum_set.resize(rec_size);
-//        std::copy(remain.begin(),remain.begin()+rec_size,enum_set.begin());
-//    }
-//    else {
-//        std::sort(enum_set.begin(), enum_set.end());
-//        std::sort(remain.begin(), remain.end());
-//
-//        for (int i = 0, j = 0; j < enum_set.size(); j++){
-//            while(remain[i]<enum_set[j]) i++;
-//            std::swap(remain[i],remain[j]);
-//        }
-//    }
-//
-//    ApproxMC::AppMC* appmc;
-//    std::vector<ApproxMC::SolCount> appmc_res (1<<enum_set.size());
-//    std::vector<CMSat::Lit>  additional_clauses (enum_set.size());
-//
-//    long long tot_sol = 0;
-//    for (int i = 0; i < enum_set.size(); i++) {
-//        additional_clauses[i] = CMSat::Lit(enum_set[i],false);
-//    }
-//    for(int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
-////        auto start = std::chrono::high_resolution_clock::now();
-//        appmc = new ApproxMC::AppMC;
-//        if (i > 0) {
-//            _tmp = i ^ (i - 1);
-//            for (auto it = additional_clauses.begin(); it != additional_clauses.end(); it++, _tmp >>= 1) {
-//                if (_tmp & 1)
-//                    (*it) = ~(*it);
-//            }
-//        }
-//        appmc_res[i] = Counting(*this, additional_clauses, appmc);
-//
-////        if (appmc_res[i].cellSolCount == 0) {
-////            delete appmcs[i];
-////        }
-//
-//        tot_sol += (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
-//
-////        auto stop = std::chrono::high_resolution_clock::now();
-//
-////        std::cout << "ApproxMC: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count()
-////                  << std::endl;
-//
-//        delete appmc;
-//    }
-//
-//    for (int i = 0; i < enum_set.size(); i++) {
-//        additional_clauses[i] = CMSat::Lit(enum_set[i],false);
-//    }
-//
-//    for(int i = 0, _tmp; i < (1<<enum_set.size()); i++ ) {
-//        if (i > 0) {
-//            _tmp = i ^ (i - 1);
-//            for (auto it = additional_clauses.begin(); it != additional_clauses.end(); it++, _tmp >>= 1) {
-//                if (_tmp & 1)
-//                    (*it) = ~(*it);
-//            }
-//        }
-//        if (appmc_res[i].cellSolCount > 0) {
-//
-//            _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
-//
-//            if(threshold>0 && (threshold>>appmc_res[i].hashCount) <= appmc_res[i].cellSolCount) {
-//
-//                std::cout << "[UniPPM] rec_call: (" << (1LL << appmc_res[i].hashCount) * appmc_res[i].cellSolCount
-//                          << " solutions, " << _tmp << " samples)" << std::endl;
-//                CNF rec_F(*this);
-//                for (auto it = additional_clauses.begin(); it != additional_clauses.end(); it++) {
-//                    rec_F.clauses.push_back({*it});
-//                }
-//                rec_F.remain.resize(remain.size() - enum_set.size());
-//                std::copy(remain.begin() + enum_set.size(), remain.end(), rec_F.remain.begin());
-//                rec_F.Enum_Sampling({}, _tmp, data, threshold, rec_size);
-//            }
-//            else {
-//                appmc = new ApproxMC::AppMC;
-//
-//                std::cout << "[UniPPM] sampling with unigen: ("
-//                          << (1LL << appmc_res[i].hashCount) * appmc_res[i].cellSolCount << " solutions, " << _tmp
-//                          << " samples)" << std::endl;
-////                auto start = std::chrono::high_resolution_clock::now();
-//                Sampling(_tmp, appmc, Counting(*this, additional_clauses, appmc), &data);
-////                auto stop = std::chrono::high_resolution_clock::now();
-////
-////                std::cout << "UniGen: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count()
-////                          << std::endl << std::endl;
-//                delete appmc;
-//            }
-//        }
-////        delete appmc;
-//    }
-//
-////    for (int i = 0, _tmp, _c; i < (1<<enum_set.size()); i++ ) {
-////        if (appmc_res[i].cellSolCount <= 0) {
-////            continue;
-////        }
-////
-////        _tmp = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount*n_samples/tot_sol+1;
-////        printf("appmc res: %lld es..\n",(1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount);
-////        _c = 0;
-////        for (auto it = data.begin(); _c < _tmp; _c++, it++) {
-////            if(result.find(*it)!=result.end()){
-////                result[*it]++;
-////            } else {
-////                result[*it]=1;
-////            }
-////        }
-////    }
-//}
-
-ApproxMC::SolCount CNF::Counting(const CNF &origin, const  std::vector<CMSat::Lit>  & additional_clauses,
-                   ApproxMC::AppMC *appmc, int verbosity) {
+void CNF::Counting(const CNF &origin, const  std::list<CMSat::Lit>  & additional_clauses,
+                   ApproxMC::AppMC * appmc, ApproxMC::SolCount * &res, int verbosity) {
     appmc -> set_verbosity(verbosity);
     appmc -> set_seed(rand());
     appmc -> new_vars(origin.n_variables);
@@ -385,7 +267,10 @@ ApproxMC::SolCount CNF::Counting(const CNF &origin, const  std::vector<CMSat::Li
     }
     appmc ->set_projection_set(origin.ind_vs);
     appmc ->setup_vars();
-    return appmc -> count();
+    auto tmp = ApproxMC::SolCount(appmc -> count());
+    std::cerr<<"finished."<<std::endl;
+    res = new ApproxMC::SolCount(tmp);
+//    Appmc = appmc;
 }
 
 void callback(const std::vector<int> & solution, void* ptr_data) {
@@ -413,76 +298,71 @@ void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCou
     delete unigen;
 }
 
-void CNF::UniPPM_Sampling(ApproxMC::SolCount * count, int n_samples,
-                          std::pair<int,int> rec_para, Solver *ptr, std::list<std::vector<int> > &data,
-                          std::pair<int,int> threshold) {
-    ApproxMC::AppMC* appmc;
-    int cases = 1;
-    long long total;
-    if (count == nullptr) {
-        total = 0;
-        std::cout << "[UniPPM][" << info_tag << "] getting " << n_samples << " samples. " << std::endl;
+
+void CNF::UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMSat::Lit> &additional_clauses,
+                           CNF::rec_node *root, const std::string &info_tag) {
+    if(root == nullptr){
+        root = &this->root;
     }
-    else {
-        total = (1LL << count->hashCount) * count->cellSolCount;
-        std::cout << "[UniPPM][" << info_tag << "] getting " << n_samples << " samples from " << total
-                  << " (estimated) solutions." << std::endl;
+    root->appmc = new ApproxMC::AppMC;
+    std::cout << "[UniPPM][" << info_tag << "] Estimating solutions.."<<std::endl;
+    std::thread count_t(Counting,std::ref(*this),std::ref(additional_clauses),root->appmc,
+                        std::ref(root->res),2);
+
+//    count_t.join();
+//    root->count = (1LL<<root->res->hashCount)*root->res->cellSolCount;
+
+    pthread_t tnh = count_t.native_handle();
+    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+    if (root->res != nullptr){
+//    if (true){
+        count_t.join();
+        root->count = (1LL<<root->res->hashCount)*root->res->cellSolCount;
+        std::cout << "[UniPPM][" << info_tag << "] Estimated "<<root->count<<" solutions"<<std::endl;
     }
+    else
+    {
+        root->appmc->signal_stop();
 
+        count_t.detach();
 
-    rec_para.second = std::min(rec_para.second,(int)(ptr->CNF_recursive_sets.size())-rec_para.first);
-    for (int i = 0; i < rec_para.second; i++){
-        cases*=ptr->CNF_recursive_sets[rec_para.first+i].size();
-    }
+        pthread_cancel(tnh);
 
-    std::vector<ApproxMC::SolCount> appmc_res (cases);
-    std::vector<std::vector<CMSat::Lit> > additional_clauses(cases,std::vector<CMSat::Lit>(rec_para.second));
+        root->appmc->destructible().lock();
 
-    for (int i = 0; i < cases; i++){
-        for (int j = 0, tmp=i; j < rec_para.second; j++){
-            auto val = ptr->CNF_recursive_sets[rec_para.first+j][tmp%ptr->CNF_recursive_sets[rec_para.first+j].size()];
-            additional_clauses[i][j] = CMSat::Lit(val, false);
-            tmp/=ptr->CNF_recursive_sets[rec_para.first+j].size();
+        std::cerr<<"deleting appmc."<<std::endl;
+        delete root->appmc;
+        root->appmc = nullptr;
+        root->n=ptr->CNF_recursive_sets[rec_para].size();
+        std::cout << "[UniPPM][" << info_tag << "] Too hard. Split into "<<root->n<<" branches."<<std::endl;
+        root->splits = new rec_node[root->n];
+        for(int i = 0;i < root->n; i++){
+            additional_clauses.emplace_back(ptr->CNF_recursive_sets[rec_para][i],false);
+            UniPPM_Preparing(timeout,rec_para+1,ptr,additional_clauses,& root->splits[i],
+                             info_tag+"."+ std::to_string(i));
+            additional_clauses.pop_back();
+            root->count += root->splits[i].count;
         }
-    }
-    std::cout << "[UniPPM][" << info_tag << "] enumerating "<<cases<<" cases"<<std::endl;
-    for(int i = 0; i < cases; i++){
-        appmc = new ApproxMC::AppMC;
-        appmc_res[i] = Counting(*this, additional_clauses[i],appmc);
-        if (appmc_res[i].cellSolCount){
-            long long case_sol = (1LL<<appmc_res[i].hashCount)*appmc_res[i].cellSolCount;
-            std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": est_sol:"<<case_sol<<std::endl;
-            int _tmp = total ? (case_sol * n_samples / total + 1) : (n_samples / cases + 1);
-
-            if (case_sol > threshold.first && _tmp > threshold.second) {
-                CNF rec_F(*this);
-                rec_F.info_tag+=std::to_string(i);
-                for (auto it = additional_clauses[i].begin(); it != additional_clauses[i].end(); it++) {
-                    rec_F.clauses.push_back({*it});
-                }
-                rec_F.UniPPM_Sampling(&appmc_res[i],_tmp,
-                                      std::pair(rec_para.first + rec_para.second, std::max(rec_para.second-1,1)),
-                                      ptr, data, threshold);
-            }
-            else {
-                std::cout << "[UniPPM][" << info_tag << "] case "<<i<<": sampling with unigen: ("
-                          << case_sol << " solutions, " << _tmp << " samples)" << std::endl;
-                Sampling(_tmp, appmc,appmc_res[i], &data);
-            }
-        }
-        delete appmc;
     }
 }
 
-
-
-
-
-
-
-
-
-
-
+void CNF::UniPPM_Sampling(int n_samples, std::list<std::vector<int> > &data, CNF::rec_node *root,
+                          const std::string &info_tag) {
+    if (root == nullptr){
+        root = &this->root;
+    }
+    if (root->res!= nullptr){
+        std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
+                  << n_samples << " trees from " << root->count << " solutions)." << std::endl;
+        Sampling(n_samples,root->appmc,*root->res,&data);
+    }
+    else{
+        std::cout<< "[UniPPM][" << info_tag << "] sampling (branching)." <<std::endl;
+        for(int i = 0; i < root->n; i++){
+            UniPPM_Sampling(n_samples*root->splits[i].count/root->count+1,data,&root->splits[i],
+                            info_tag+"."+ std::to_string(i));
+        }
+    }
+}
 
 

@@ -15,7 +15,7 @@
 class Solver {
     friend class CNF;
 public:
-    explicit Solver(const AncestryGraph & In, int rec_size=4, int rec_T=10000, int rec_min=500);
+    explicit Solver(const AncestryGraph & In, int timeout = 10000);
 
     ~Solver();
 
@@ -43,8 +43,7 @@ private:
 
     CNF F;
 
-    int rec_size;
-    std::pair<int,int> rec_para;
+    int timeout;
 };
 
 
