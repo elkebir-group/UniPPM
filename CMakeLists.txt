@@ -25,11 +25,11 @@ FetchContent_MakeAvailable(or-tools)
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS} ${APPROXMC_INCLUDE_DIRS} ${UNIGEN_INCLUDE_DIRS} ${BOOST_INCLUDE_DIRS} ${ORTOOLS_INCLUDE_DIRS})
 set( CommonLibs m ${CRYPTOMINISAT5_LIBRARIES} ${APPROXMC_LIBRARIES} ${UNIGEN_LIBRARIES} )
 
-add_executable(unippm main.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h) #Parallel.cpp Parallel.h)
-#add_executable(test test.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h)
+link_libraries(${CommonLibs} Boost::boost ortools::ortools)
 
-#add_executable(test test.cpp)
+add_executable(unippm-reads main.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h) #Parallel.cpp Parallel.h)
 
-target_link_libraries(unippm ${CommonLibs} Boost::boost ortools::ortools)
+add_executable(unippm-freqs main-freqs.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h) #Parallel.cpp Parallel.h)
+
 
 

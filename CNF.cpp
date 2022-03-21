@@ -256,7 +256,6 @@ CNF::~CNF() {
 
 void CNF::Counting(const CNF &origin, const  std::list<CMSat::Lit>  & additional_clauses,
                    ApproxMC::AppMC * appmc, ApproxMC::SolCount &res, int verbosity) {
-//    appmc -> destructible();
     appmc -> set_verbosity(verbosity);
     appmc -> set_seed(rand());
     appmc -> new_vars(origin.n_variables);
@@ -269,7 +268,6 @@ void CNF::Counting(const CNF &origin, const  std::list<CMSat::Lit>  & additional
     appmc ->set_projection_set(origin.ind_vs);
     appmc ->setup_vars();
     res = appmc -> count();
-//    appmc ->destructible().unlock();
 }
 
 void callback(const std::vector<int> & solution, void* ptr_data) {
