@@ -102,7 +102,7 @@ void parse_argument(int argc,char * argv[]){
                 seed = 1;//time(0);
                 break;
             case 'T':
-                timeout = 5000;
+                timeout = 2000;
                 break;
         }
     }
