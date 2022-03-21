@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cassert>
 #include "Solver.h"
-#include <pthread.h>
+//#include <pthread.h>
 #include <thread>
 
 CNF::CNF():True(CMSat::Lit(0, false)),False(CMSat::Lit(0, true)),
@@ -256,6 +256,7 @@ CNF::~CNF() {
 
 void CNF::Counting(const CNF &origin, const  std::list<CMSat::Lit>  & additional_clauses,
                    ApproxMC::AppMC * appmc, ApproxMC::SolCount &res, int verbosity) {
+//    appmc -> destructible();
     appmc -> set_verbosity(verbosity);
     appmc -> set_seed(rand());
     appmc -> new_vars(origin.n_variables);
@@ -268,6 +269,7 @@ void CNF::Counting(const CNF &origin, const  std::list<CMSat::Lit>  & additional
     appmc ->set_projection_set(origin.ind_vs);
     appmc ->setup_vars();
     res = appmc -> count();
+//    appmc ->destructible().unlock();
 }
 
 void callback(const std::vector<int> & solution, void* ptr_data) {
@@ -295,6 +297,10 @@ void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCou
     delete unigen;
 }
 
+void mytimeout(ApproxMC::AppMC * & appmc, int ms){
+    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    if (appmc) appmc->signal_stop();
+}
 
 void CNF::UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMSat::Lit> &additional_clauses,
                            CNF::rec_node *root, const std::string &info_tag) {
@@ -303,29 +309,30 @@ void CNF::UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMS
     }
     root->appmc = new ApproxMC::AppMC;
     std::cout << "[UniPPM][" << info_tag << "] Estimating solutions.."<<std::endl;
+
+//    root->appmc -> destructible().lock();
     std::thread count_t(Counting,std::ref(*this),std::ref(additional_clauses),root->appmc,
                         std::ref(root->res),1);
 
-    pthread_t tnh = count_t.native_handle();
-    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+    std::thread timer(mytimeout,std::ref(root->appmc),timeout);
+    timer.detach();
+
+//    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+//    root->appmc->destructible().lock();
+
+    count_t.join();
+
     if (root->res.hashCount < 0x7fffffff){
-        count_t.join();
         root->count = (1LL<<root->res.hashCount)*root->res.cellSolCount;
         std::cout << "[UniPPM][" << info_tag << "] Estimated "<<root->count<<" solutions"<<std::endl;
         if (!root->count){
             delete root -> appmc;
+            root->appmc = nullptr;
         }
     }
     else
     {
-        root->appmc->signal_stop();
-
-        count_t.join();
-//        pthread_cancel(tnh);
-
-//        root->appmc->destructible().lock();
-
-//        std::cerr<<"deleting appmc."<<std::endl;
+//        root->appmc->signal_stop();
         delete root->appmc;
         root->appmc = nullptr;
         root->n=ptr->CNF_recursive_sets[rec_para].size();
