@@ -72,13 +72,13 @@ public:
 //                         std::pair<int,int> threshold);
 
     struct rec_node{
-        ApproxMC::SolCount * res;
+        ApproxMC::SolCount res;
         ApproxMC::AppMC * appmc;
         rec_node * splits;
         int n;
         long long count;
-        rec_node():res(nullptr),appmc(nullptr),splits(nullptr),count(0){}
-        ~rec_node(){delete splits; delete res;}
+        rec_node():appmc(nullptr),splits(nullptr),count(0),res({false,0x7fffffff,0x7fffffff}){}
+        ~rec_node(){delete splits;}
     };
 
     void UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMSat::Lit> & additional_clauses,
@@ -88,7 +88,7 @@ public:
                          const std::string & info_tage = "0");
 
     static void Counting(const CNF & origin, const std::list<CMSat::Lit> & additional_clauses,
-                         ApproxMC::AppMC *appmc, ApproxMC::SolCount *&res, int = 1);
+                         ApproxMC::AppMC *appmc, ApproxMC::SolCount &res, int = 1);
 
     static void Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCount &sol_count,
                          std::list<std::vector<int> > *ptr_);

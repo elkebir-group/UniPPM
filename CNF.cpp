@@ -255,7 +255,7 @@ CNF::~CNF() {
 }
 
 void CNF::Counting(const CNF &origin, const  std::list<CMSat::Lit>  & additional_clauses,
-                   ApproxMC::AppMC * appmc, ApproxMC::SolCount * &res, int verbosity) {
+                   ApproxMC::AppMC * appmc, ApproxMC::SolCount &res, int verbosity) {
     appmc -> set_verbosity(verbosity);
     appmc -> set_seed(rand());
     appmc -> new_vars(origin.n_variables);
@@ -267,10 +267,7 @@ void CNF::Counting(const CNF &origin, const  std::list<CMSat::Lit>  & additional
     }
     appmc ->set_projection_set(origin.ind_vs);
     appmc ->setup_vars();
-    auto tmp = ApproxMC::SolCount(appmc -> count());
-    std::cerr<<"finished."<<std::endl;
-    res = new ApproxMC::SolCount(tmp);
-//    Appmc = appmc;
+    res = appmc -> count();
 }
 
 void callback(const std::vector<int> & solution, void* ptr_data) {
@@ -309,26 +306,21 @@ void CNF::UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMS
     std::thread count_t(Counting,std::ref(*this),std::ref(additional_clauses),root->appmc,
                         std::ref(root->res),1);
 
-//    count_t.join();
-//    root->count = (1LL<<root->res->hashCount)*root->res->cellSolCount;
-
     pthread_t tnh = count_t.native_handle();
     std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
-    if (root->res != nullptr){
-//    if (true){
+    if (root->res.hashCount < 0x7fffffff){
         count_t.join();
-        root->count = (1LL<<root->res->hashCount)*root->res->cellSolCount;
+        root->count = (1LL<<root->res.hashCount)*root->res.cellSolCount;
         std::cout << "[UniPPM][" << info_tag << "] Estimated "<<root->count<<" solutions"<<std::endl;
     }
     else
     {
         root->appmc->signal_stop();
 
-        count_t.detach();
+        count_t.join();
+//        pthread_cancel(tnh);
 
-        pthread_cancel(tnh);
-
-        root->appmc->destructible().lock();
+//        root->appmc->destructible().lock();
 
 //        std::cerr<<"deleting appmc."<<std::endl;
         delete root->appmc;
@@ -351,10 +343,10 @@ void CNF::UniPPM_Sampling(int n_samples, std::list<std::vector<int> > &data, CNF
     if (root == nullptr){
         root = &this->root;
     }
-    if (root->res!= nullptr){
+    if (root->res.hashCount < 0x7fffffff){
         std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
                   << n_samples << " trees from " << root->count << " solutions)." << std::endl;
-        Sampling(n_samples,root->appmc,*root->res,&data);
+        Sampling(n_samples,root->appmc,root->res,&data);
     }
     else{
         std::cout<< "[UniPPM][" << info_tag << "] sampling (branching)." <<std::endl;
