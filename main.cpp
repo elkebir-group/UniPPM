@@ -2,11 +2,8 @@
 #include <map>
 #include <string>
 #include <set>
-//#include <ctime>
 #include <random>
-//#include <cmath>
-//#include <boost/program_options.hpp>
-//namespace po = boost::program_options;
+#include <chrono>
 
 //po::options_description main_options = po::options_description("Main options");
 
@@ -110,6 +107,7 @@ void parse_argument(int argc,char * argv[]){
 }
 
 int main(int argc, char * argv[]) {
+    auto start = chrono::high_resolution_clock::now();
     parse_argument(argc,argv);
     Input_Reads raw_in(input_file.c_str());
 
@@ -180,6 +178,11 @@ int main(int argc, char * argv[]) {
 //    stringstream sout;
 
 //    ofstream fout(output_file);
+
+    auto e1 = chrono::high_resolution_clock::now();
+    chrono::duration<double,milli> dur = (e1-start);
+    cout<<"[UniPPM] sampling finished, takes total of "<< dur.count()/1000.0 <<" seconds."<<endl;
+
     cout<<"[UniPPM] calculating likelihood."<<endl;
     FILE * fout = fopen(output_file.c_str(),"w");
     for(auto it = res.begin();it!=res.end();it++) {
@@ -196,6 +199,11 @@ int main(int argc, char * argv[]) {
     }
 
     fprintf(fout,"# %d samples, # %d unique trees\n",total,unique);
+    auto e2 = chrono::high_resolution_clock::now();
+    chrono::duration<double,milli> dur2 = (e2-e1);
+    cout<<"[UniPPM] likelihood calculations take "<< dur2.count()/1000.0 <<" seconds."<<endl;
+    chrono::duration<double,milli> dur_t = (e2-start);
+    cout<<"[UniPPM] total: "<< dur_t.count()/1000.0 << " seconds."<<endl;
 
     fclose(fout);
     return 0;

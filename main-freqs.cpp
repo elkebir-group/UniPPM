@@ -86,6 +86,7 @@ void parse_argument(int argc,char * argv[]){
 }
 
 int main(int argc, char * argv[]) {
+    auto start = chrono::high_resolution_clock::now();
     parse_argument(argc,argv);
     Input raw_in(input_file.c_str());
 
@@ -97,7 +98,7 @@ int main(int argc, char * argv[]) {
     Solver solver(Gf,timeout);
 
     map<vector<pair<int,int> >,int> res;
-    solver.sampling(n_samples * 2, res);
+    solver.sampling(n_samples, res);
 
 //    for(auto i:res){
 //        cout <<"----------- sample:"<<i.second<<endl;
@@ -111,7 +112,11 @@ int main(int argc, char * argv[]) {
 //    stringstream sout;
 
 //    ofstream fout(output_file);
-    cout<<"[UniPPM] calculating likelihood."<<endl;
+    auto e1 = chrono::high_resolution_clock::now();
+    chrono::duration<double,milli> dur = (e1-start);
+    cout<<"[UniPPM] sampling finished, takes total of "<< dur.count()/1000.0 <<" seconds."<<endl;
+
+    cout<<"[UniPPM] writing."<<endl;
     FILE * fout = fopen(output_file.c_str(),"w");
     for(auto it = res.begin();it!=res.end();it++) {
 
