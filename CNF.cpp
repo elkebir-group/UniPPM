@@ -312,6 +312,9 @@ void CNF::UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMS
         count_t.join();
         root->count = (1LL<<root->res.hashCount)*root->res.cellSolCount;
         std::cout << "[UniPPM][" << info_tag << "] Estimated "<<root->count<<" solutions"<<std::endl;
+        if (!root->count){
+            delete root -> appmc;
+        }
     }
     else
     {
@@ -342,6 +345,9 @@ void CNF::UniPPM_Sampling(int n_samples, std::list<std::vector<int> > &data, CNF
                           const std::string &info_tag) {
     if (root == nullptr){
         root = &this->root;
+    }
+    if (!root->count){
+        return;
     }
     if (root->res.hashCount < 0x7fffffff){
         std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
