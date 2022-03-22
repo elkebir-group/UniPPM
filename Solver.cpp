@@ -7,7 +7,7 @@
 #include <chrono>
 #include <utility>
 
-Solver::Solver(const AncestryGraph &in, int timeout):F(),In(in),timeout(timeout){
+Solver::Solver(const AncestryGraph &in, int timeout, int rec_t):F(),In(in),timeout(timeout),rec_t(rec_t){
 
     std::vector<CMSat::Lit> r_vars;
     if (In.In.r < 0){
@@ -164,7 +164,7 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
 
     set_up_recursive();
 
-    F.UniPPM_Preparing(timeout,0,this,tmp_cs);
+    F.UniPPM_Preparing(timeout,rec_t,0,this,tmp_cs);
 
     F.UniPPM_Sampling(n_sample,data);
 

@@ -15,7 +15,7 @@
 class Solver {
     friend class CNF;
 public:
-    explicit Solver(const AncestryGraph & In, int timeout = 10000);
+    explicit Solver(const AncestryGraph & In, int timeout = 10000, int rec_t=1000);
 
     ~Solver();
 
@@ -43,7 +43,7 @@ private:
 
     CNF F;
 
-    int timeout;
+    int timeout,rec_t;
 };
 
 

@@ -20,11 +20,11 @@ int n_samples,n_bits,n_intervals;
 double approx_coef = -1, help_approx_coef;
 long long seed;
 
-int timeout;
+int timeout,rec_thr;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-T"});
+    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-T","-R"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -65,6 +65,8 @@ void parse_argument(int argc,char * argv[]){
             case 'T':
                 timeout = stoi(it->second);
                 break;
+            case 'R':
+                rec_thr = stoi(it->second);
         }
     }
     for (auto it = p_options.begin();it!=p_options.end();it++) {
@@ -99,8 +101,10 @@ void parse_argument(int argc,char * argv[]){
                 seed = 1;//time(0);
                 break;
             case 'T':
-                timeout = 2000;
+                timeout = 10000;
                 break;
+            case 'R':
+                rec_thr = 1024;
         }
     }
     srand(seed);
@@ -160,7 +164,7 @@ int main(int argc, char * argv[]) {
     Input transform_in(raw_in,pow(t_alpha,1.0/(raw_in.n*raw_in.m)));
     Input_int in(transform_in,n_bits);
     AncestryGraph Gf(in);
-    Solver solver(Gf,timeout);
+    Solver solver(Gf,timeout,rec_thr);
     Likelihood LLH(in,raw_in,n_bits);
 
     map<vector<pair<int,int> >,int> res;

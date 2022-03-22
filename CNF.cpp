@@ -300,7 +300,7 @@ void mytimeout(ApproxMC::AppMC * & appmc, int ms){
     if (appmc) appmc->signal_stop();
 }
 
-void CNF::UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMSat::Lit> &additional_clauses,
+void CNF::UniPPM_Preparing(int timeout,int rec_t, int rec_step, Solver *ptr, std::list<CMSat::Lit> &additional_clauses,
                            CNF::rec_node *root, const std::string &info_tag) {
     if(root == nullptr){
         root = &this->root;
@@ -320,25 +320,35 @@ void CNF::UniPPM_Preparing(int timeout, int rec_para, Solver *ptr, std::list<CMS
 
     count_t.join();
 
+    bool split = false;
     if (root->res.hashCount < 0x7fffffff){
         root->count = (1LL<<root->res.hashCount)*root->res.cellSolCount;
-        std::cout << "[UniPPM][" << info_tag << "] Estimated "<<root->count<<" solutions"<<std::endl;
-        if (!root->count){
-            delete root -> appmc;
-            root->appmc = nullptr;
+        if (root->count > rec_t){
+            std::cout << "[UniPPM][" << info_tag << "] Estimated " << root->count << " solutions,";
+            split = true;
+        }
+        else {
+            std::cout << "[UniPPM][" << info_tag << "] Estimated " << root->count << " solutions" << std::endl;
+            if (!root->count) {
+                delete root->appmc;
+                root->appmc = nullptr;
+            }
         }
     }
     else
+        split = true;
+
+    if(split)
     {
 //        root->appmc->signal_stop();
         delete root->appmc;
         root->appmc = nullptr;
-        root->n=ptr->CNF_recursive_sets[rec_para].size();
+        root->n=ptr->CNF_recursive_sets[rec_step].size();
         std::cout << "[UniPPM][" << info_tag << "] Too hard. Split into "<<root->n<<" branches."<<std::endl;
         root->splits = new rec_node[root->n];
         for(int i = 0;i < root->n; i++){
-            additional_clauses.emplace_back(ptr->CNF_recursive_sets[rec_para][i],false);
-            UniPPM_Preparing(timeout,rec_para+1,ptr,additional_clauses,& root->splits[i],
+            additional_clauses.emplace_back(ptr->CNF_recursive_sets[rec_step][i],false);
+            UniPPM_Preparing(timeout,rec_t,rec_step+1,ptr,additional_clauses,& root->splits[i],
                              info_tag+"."+ std::to_string(i));
             additional_clauses.pop_back();
             root->count += root->splits[i].count;
