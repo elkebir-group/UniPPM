@@ -364,7 +364,7 @@ void CNF::UniPPM_Sampling(int n_samples, std::list<std::vector<int> > &data, CNF
     if (!root->count){
         return;
     }
-    if (root->res.hashCount < 0x7fffffff){
+    if (root->appmc){
         std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
                   << n_samples << " trees from " << root->count << " solutions)." << std::endl;
         Sampling(n_samples,root->appmc,root->res,&data);
