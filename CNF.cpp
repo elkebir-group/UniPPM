@@ -371,8 +371,8 @@ void CNF::UniPPM_Sampling(int n_samples,int rec_step,Solver *ptr, std::list<CMSa
         auto appmc = new ApproxMC::AppMC;
         std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
                   << n_samples << " trees from " << root->count << " solutions)." << std::endl;
-        Counting(*this, additional_clauses,root->appmc,root->res);
-        Sampling(n_samples,root->appmc,root->res,&data);
+        Counting(*this, additional_clauses,appmc,root->res);
+        Sampling(n_samples,appmc,root->res,&data);
         delete appmc;
     }
     else{
