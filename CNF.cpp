@@ -295,30 +295,30 @@ void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCou
     delete unigen;
 }
 
-void mytimeout(ApproxMC::AppMC * & appmc, int ms){
-    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-    if (appmc) appmc->signal_stop();
-}
+//void mytimeout(ApproxMC::AppMC * & appmc, int ms){
+//    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+//    if (appmc) appmc->signal_stop();
+//}
 
-void CNF::UniPPM_Preparing(int timeout, /*int rec_t,*/ int rec_step, int force_layer, Solver *ptr,
+void CNF::UniPPM_Preparing(/*int timeout,*/ int rec_t, int rec_step, int force_layer, Solver *ptr,
                            std::list<CMSat::Lit> &additional_clauses,
                            CNF::rec_node *root, const std::string &info_tag) {
     if(root == nullptr){
         root = &this->root;
     }
 
-    if (rec_step >= force_layer) {
-
+    if (rec_step >= force_layer || rec_step > ptr->CNF_recursive_sets.size()) {
         root->appmc = new ApproxMC::AppMC;
         std::cout << "[UniPPM][" << info_tag << "] Estimating solutions.." << std::endl;
 
-        std::thread count_t(Counting, std::ref(*this), std::ref(additional_clauses), root->appmc,
-                            std::ref(root->res), 1);
+//        std::thread count_t(Counting, std::ref(*this), std::ref(additional_clauses), root->appmc,
+//                            std::ref(root->res), 1);
+        Counting(*this, additional_clauses,root->appmc,root->res);
 
-        std::thread timer(mytimeout, std::ref(root->appmc), timeout);
-        timer.detach();
+//        std::thread timer(mytimeout, std::ref(root->appmc), timeout);
+//        timer.detach();
 
-        count_t.join();
+//        count_t.join();
     }
     else {
         std::cout << "[UniPPM][" << info_tag << "] forced layer.." << std::endl;
@@ -338,8 +338,10 @@ void CNF::UniPPM_Preparing(int timeout, /*int rec_t,*/ int rec_step, int force_l
     else
         root->split = true;
 
-    delete root->appmc;
-    root->appmc = nullptr;
+    if(!rec_t) {
+        delete root->appmc;
+        root->appmc = nullptr;
+    }
 
     if(root->split)
     {
@@ -350,7 +352,7 @@ void CNF::UniPPM_Preparing(int timeout, /*int rec_t,*/ int rec_step, int force_l
         root->count = 0;
         for(int i = 0;i < root->n; i++){
             additional_clauses.emplace_back(ptr->CNF_recursive_sets[rec_step][i],false);
-            UniPPM_Preparing(timeout,rec_step+1,force_layer,ptr,additional_clauses,& root->splits[i],
+            UniPPM_Preparing(rec_t,rec_step+1,force_layer,ptr,additional_clauses,& root->splits[i],
                              info_tag+"."+ std::to_string(i));
             additional_clauses.pop_back();
             root->count += root->splits[i].count;
@@ -368,12 +370,17 @@ void CNF::UniPPM_Sampling(int n_samples,int rec_step,Solver *ptr, std::list<CMSa
         return;
     }
     if (!root->split){
-        auto appmc = new ApproxMC::AppMC;
-        std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
-                  << n_samples << " trees from " << root->count << " solutions)." << std::endl;
-        Counting(*this, additional_clauses,appmc,root->res);
-        Sampling(n_samples,appmc,root->res,&data);
-        delete appmc;
+        if (root->appmc){
+            Sampling(n_samples,root->appmc,root->res,&data);
+        }
+        else {
+            auto appmc = new ApproxMC::AppMC;
+            std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
+                      << n_samples << " trees from " << root->count << " solutions)." << std::endl;
+            Counting(*this, additional_clauses, appmc, root->res);
+            Sampling(n_samples, appmc, root->res, &data);
+            delete appmc;
+        }
     }
     else{
         std::cout<< "[UniPPM][" << info_tag << "] sampling (branching)." <<std::endl;
