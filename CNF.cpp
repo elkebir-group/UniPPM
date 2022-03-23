@@ -334,6 +334,10 @@ void CNF::UniPPM_Preparing(/*int timeout,*/ int rec_t, int rec_step, int force_l
             std::cout << "[UniPPM][" << info_tag << "] Estimated " << root->count << " solutions" << std::endl;
 //        }
         root->split = false;
+        if (root->count==0){
+            delete root->appmc;
+            root->appmc= nullptr;
+        }
     }
     else
         root->split = true;
@@ -371,6 +375,8 @@ void CNF::UniPPM_Sampling(int n_samples,int rec_step,Solver *ptr, std::list<CMSa
     }
     if (!root->split){
         if (root->appmc){
+            std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
+                      << n_samples << " trees from " << root->count << " solutions)." << std::endl;
             Sampling(n_samples,root->appmc,root->res,&data);
         }
         else {
