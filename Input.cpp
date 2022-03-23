@@ -31,9 +31,9 @@ Input::Input(const char * filename) : m(M), n(N), r(R), F_l(F_lower), F_u(F_uppe
 }
 
 Input::~Input() {
-    delete ptr;
-    delete F_upper;
-    delete F_lower;
+    delete [] ptr;
+    delete [] F_upper;
+    delete [] F_lower;
 }
 
 Input::Input(const Input_Reads &In, const double &alpha): m(M), n(N), r(R), F_l(F_lower), F_u(F_upper) {
@@ -75,9 +75,9 @@ Input_int::Input_int(const Input & In, const int &N_bits):m(In.m),n(In.n),r(In.r
 }
 
 Input_int::~Input_int() {
-    delete ptr;
-    delete F_upper;
-    delete F_lower;
+    delete [] ptr;
+    delete [] F_upper;
+    delete [] F_lower;
 }
 
 
@@ -102,9 +102,9 @@ Input_Reads::Input_Reads(const char *filename): m(M), n(N), r(R), var(VAR), ref(
 }
 
 Input_Reads::~Input_Reads() {
-    delete ptr;
-    delete VAR;
-    delete REF;
+    delete [] ptr;
+    delete [] VAR;
+    delete [] REF;
 }
 
 
