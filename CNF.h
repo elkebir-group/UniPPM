@@ -80,7 +80,7 @@ public:
         long long count;
         rec_node():appmc(nullptr),splits(nullptr),count(0),split(false),
         res({false,0x7fffffff,0x7fffffff}){}
-        ~rec_node(){delete splits;}
+        ~rec_node(){delete [] splits;}
     };
 
     void UniPPM_Preparing(int timeout, /*int rec_t,*/ int rec_step, int force_layer,
