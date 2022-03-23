@@ -339,6 +339,7 @@ void CNF::UniPPM_Preparing(int timeout, /*int rec_t,*/ int rec_step, int force_l
         root->split = true;
 
     delete root->appmc;
+    root->appmc = nullptr;
 
     if(root->split)
     {
