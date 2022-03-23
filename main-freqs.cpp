@@ -20,11 +20,11 @@ int n_samples,n_bits;//,n_intervals;
 //double approx_coef = -1, help_approx_coef;
 long long seed;
 
-int timeout;
+int timeout,force_layer;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-s","-T"});
+    set<string> p_options({"-i","-o","-n","-N","-s","-T","-R"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -56,6 +56,8 @@ void parse_argument(int argc,char * argv[]){
             case 'T':
                 timeout = stoi(it->second);
                 break;
+            case 'R':
+                force_layer = stoi(it->second);
         }
     }
     for (auto it = p_options.begin();it!=p_options.end();it++) {
@@ -80,6 +82,8 @@ void parse_argument(int argc,char * argv[]){
             case 'T':
                 timeout = 2000;
                 break;
+            case 'R':
+                force_layer = 2;
         }
     }
     srand(seed);
@@ -95,7 +99,7 @@ int main(int argc, char * argv[]) {
     double l_a = EPS,r_a = 1-EPS, t_alpha;
 
     AncestryGraph Gf(in);
-    Solver solver(Gf,timeout);
+    Solver solver(Gf,timeout,force_layer);
 
     map<vector<pair<int,int> >,int> res;
     solver.sampling(n_samples, res);

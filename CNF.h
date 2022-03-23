@@ -76,15 +76,19 @@ public:
         ApproxMC::AppMC * appmc;
         rec_node * splits;
         int n;
+        bool split;
         long long count;
-        rec_node():appmc(nullptr),splits(nullptr),count(0),res({false,0x7fffffff,0x7fffffff}){}
+        rec_node():appmc(nullptr),splits(nullptr),count(0),split(false),
+        res({false,0x7fffffff,0x7fffffff}){}
         ~rec_node(){delete splits;}
     };
 
-    void UniPPM_Preparing(int timeout,int rec_t, int rec_step, Solver *ptr, std::list<CMSat::Lit> & additional_clauses,
+    void UniPPM_Preparing(int timeout, /*int rec_t,*/ int rec_step, int force_layer,
+                          Solver *ptr, std::list<CMSat::Lit> & additional_clauses,
                           rec_node *root = nullptr, const std::string & info_tag = "0");
 
-    void UniPPM_Sampling(int n_samples, std::list<std::vector<int> > &data, rec_node *root = nullptr,
+    void UniPPM_Sampling(int n_samples,int rec_step ,Solver *ptr, std::list<CMSat::Lit> &additional_clauses,
+                         std::list<std::vector<int> > &data, rec_node *root = nullptr,
                          const std::string & info_tage = "0");
 
     static void Counting(const CNF & origin, const std::list<CMSat::Lit> & additional_clauses,

@@ -300,55 +300,56 @@ void mytimeout(ApproxMC::AppMC * & appmc, int ms){
     if (appmc) appmc->signal_stop();
 }
 
-void CNF::UniPPM_Preparing(int timeout,int rec_t, int rec_step, Solver *ptr, std::list<CMSat::Lit> &additional_clauses,
+void CNF::UniPPM_Preparing(int timeout, /*int rec_t,*/ int rec_step, int force_layer, Solver *ptr,
+                           std::list<CMSat::Lit> &additional_clauses,
                            CNF::rec_node *root, const std::string &info_tag) {
     if(root == nullptr){
         root = &this->root;
     }
-    root->appmc = new ApproxMC::AppMC;
-    std::cout << "[UniPPM][" << info_tag << "] Estimating solutions.."<<std::endl;
 
-//    root->appmc -> destructible().lock();
-    std::thread count_t(Counting,std::ref(*this),std::ref(additional_clauses),root->appmc,
-                        std::ref(root->res),1);
+    if (rec_step >= force_layer) {
 
-    std::thread timer(mytimeout,std::ref(root->appmc),timeout);
-    timer.detach();
+        root->appmc = new ApproxMC::AppMC;
+        std::cout << "[UniPPM][" << info_tag << "] Estimating solutions.." << std::endl;
 
-//    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
-//    root->appmc->destructible().lock();
+        std::thread count_t(Counting, std::ref(*this), std::ref(additional_clauses), root->appmc,
+                            std::ref(root->res), 1);
 
-    count_t.join();
+        std::thread timer(mytimeout, std::ref(root->appmc), timeout);
+        timer.detach();
 
-    bool split = false;
+        count_t.join();
+    }
+    else {
+        std::cout << "[UniPPM][" << info_tag << "] forced layer.." << std::endl;
+    }
+
     if (root->res.hashCount < 0x7fffffff){
         root->count = (1LL<<root->res.hashCount)*root->res.cellSolCount;
-        if (root->count > rec_t){
-            std::cout << "[UniPPM][" << info_tag << "] Estimated " << root->count << " solutions,";
-            split = true;
-        }
-        else {
+//        if (root->count > rec_t){
+//            std::cout << "[UniPPM][" << info_tag << "] Estimated " << root->count << " solutions,";
+//            split = true;
+//        }
+//        else {
             std::cout << "[UniPPM][" << info_tag << "] Estimated " << root->count << " solutions" << std::endl;
-            if (!root->count) {
-                delete root->appmc;
-                root->appmc = nullptr;
-            }
-        }
+//        }
+        root->split = false;
     }
     else
-        split = true;
+        root->split = true;
 
-    if(split)
+    delete root->appmc;
+
+    if(root->split)
     {
 //        root->appmc->signal_stop();
-        delete root->appmc;
-        root->appmc = nullptr;
         root->n=ptr->CNF_recursive_sets[rec_step].size();
         std::cout << "[UniPPM][" << info_tag << "] Too hard. Split into "<<root->n<<" branches."<<std::endl;
         root->splits = new rec_node[root->n];
+        root->count = 0;
         for(int i = 0;i < root->n; i++){
             additional_clauses.emplace_back(ptr->CNF_recursive_sets[rec_step][i],false);
-            UniPPM_Preparing(timeout,rec_t,rec_step+1,ptr,additional_clauses,& root->splits[i],
+            UniPPM_Preparing(timeout,rec_step+1,force_layer,ptr,additional_clauses,& root->splits[i],
                              info_tag+"."+ std::to_string(i));
             additional_clauses.pop_back();
             root->count += root->splits[i].count;
@@ -356,7 +357,8 @@ void CNF::UniPPM_Preparing(int timeout,int rec_t, int rec_step, Solver *ptr, std
     }
 }
 
-void CNF::UniPPM_Sampling(int n_samples, std::list<std::vector<int> > &data, CNF::rec_node *root,
+void CNF::UniPPM_Sampling(int n_samples,int rec_step,Solver *ptr, std::list<CMSat::Lit> &additional_clauses,
+                          std::list<std::vector<int> > &data, CNF::rec_node *root,
                           const std::string &info_tag) {
     if (root == nullptr){
         root = &this->root;
@@ -364,16 +366,22 @@ void CNF::UniPPM_Sampling(int n_samples, std::list<std::vector<int> > &data, CNF
     if (!root->count){
         return;
     }
-    if (root->appmc){
+    if (!root->split){
+        root->appmc = new ApproxMC::AppMC;
         std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
                   << n_samples << " trees from " << root->count << " solutions)." << std::endl;
+        Counting(*this, additional_clauses,root->appmc,root->res);
         Sampling(n_samples,root->appmc,root->res,&data);
+        delete root->appmc;
     }
     else{
         std::cout<< "[UniPPM][" << info_tag << "] sampling (branching)." <<std::endl;
         for(int i = 0; i < root->n; i++){
-            UniPPM_Sampling(n_samples*root->splits[i].count/root->count+1,data,&root->splits[i],
+            additional_clauses.emplace_back(ptr->CNF_recursive_sets[rec_step][i],false);
+            UniPPM_Sampling(n_samples*root->splits[i].count/root->count+1,rec_step+1,ptr,additional_clauses,
+                            data,&root->splits[i],
                             info_tag+"."+ std::to_string(i));
+            additional_clauses.pop_back();
         }
     }
 }

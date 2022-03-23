@@ -20,7 +20,7 @@ int n_samples,n_bits,n_intervals;
 double approx_coef = -1, help_approx_coef;
 long long seed;
 
-int timeout,rec_thr;
+int timeout,force_layer;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
@@ -66,9 +66,10 @@ void parse_argument(int argc,char * argv[]){
                 timeout = stoi(it->second);
                 break;
             case 'R':
-                rec_thr = stoi(it->second);
+                force_layer = stoi(it->second);
         }
     }
+
     for (auto it = p_options.begin();it!=p_options.end();it++) {
         switch ((*it)[1]) {
             case 'i':
@@ -104,7 +105,7 @@ void parse_argument(int argc,char * argv[]){
                 timeout = 10000;
                 break;
             case 'R':
-                rec_thr = 1024;
+                force_layer = 2;
         }
     }
     srand(seed);
@@ -164,7 +165,7 @@ int main(int argc, char * argv[]) {
     Input transform_in(raw_in,pow(t_alpha,1.0/(raw_in.n*raw_in.m)));
     Input_int in(transform_in,n_bits);
     AncestryGraph Gf(in);
-    Solver solver(Gf,timeout,rec_thr);
+    Solver solver(Gf,timeout,force_layer);
     Likelihood LLH(in,raw_in,n_bits);
 
     map<vector<pair<int,int> >,int> res;
