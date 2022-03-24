@@ -64,6 +64,8 @@ public:
 
     std::vector<CMSat::Lit> Solve(bool =true);
 
+    static bool solvable(CMSat::SATSolver*);
+
 //    void Enum_Sampling(std::vector<uint32_t> starting_enum_set, int n_samples,
 //                       std::list<std::vector<int> > & data, int threshold, int rec_size);
 

@@ -251,6 +251,14 @@ std::vector<CMSat::Lit> CNF::Solve(bool ind) {
     return {True};
 }
 
+bool CNF::solvable(CMSat::SATSolver * minisat) {
+    CMSat::lbool ret = minisat ->solve();
+    if (ret==CMSat::l_False)
+        return false;
+    else
+        return true;
+}
+
 CNF::~CNF() {
 }
 
@@ -267,7 +275,11 @@ void CNF::Counting(const CNF &origin, const  std::list<CMSat::Lit>  & additional
     }
     appmc ->set_projection_set(origin.ind_vs);
     appmc ->setup_vars();
-    res = appmc -> count();
+
+    if (solvable(appmc->get_solver()))
+        res = appmc -> count();
+    else
+        res = {0,0,0};
 }
 
 void callback(const std::vector<int> & solution, void* ptr_data) {
