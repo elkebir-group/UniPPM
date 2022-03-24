@@ -27,7 +27,7 @@ set( CommonLibs m ${CRYPTOMINISAT5_LIBRARIES} ${APPROXMC_LIBRARIES} ${UNIGEN_LIB
 
 link_libraries(${CommonLibs} Boost::boost ortools::ortools)
 
-add_executable(unippm-reads main.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h MultithreadSampler.cpp MultithreadSampler.h) #Parallel.cpp Parallel.h)
+add_executable(unippm-reads main.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h)# MultithreadSampler.cpp MultithreadSampler.h) #Parallel.cpp Parallel.h)
 
 add_executable(unippm-freqs main-freqs.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h) #Parallel.cpp Parallel.h)
 
