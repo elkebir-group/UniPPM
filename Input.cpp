@@ -27,7 +27,7 @@ Input::Input(const char * filename, bool multi) : m(M), n(N), r(R), F_l(F_lower)
             fin >> F_lower[i][j] >> F_upper[i][j];
         }
         if (multi) {
-            F_lower[i][n - 1] = 0;
+            F_lower[i][n - 1] = 1-1e9;
             F_upper[i][n - 1] = 1-1e9;
         }
     }
@@ -59,7 +59,7 @@ Input::Input(const Input_Reads &In, const double &alpha, bool multi): m(M), n(N)
             F_upper[i][j] = In.ref[i][j] ? boost::math::ibeta_inv(In.var[i][j]+0.5, In.ref[i][j]+0.5,(1+alpha)/2) : 1;
         }
         if (multi) {
-            F_lower[i][n - 1] = 0;
+            F_lower[i][n - 1] = 1-1e-9;
             F_upper[i][n - 1] = 1-1e-9;
         }
     }
