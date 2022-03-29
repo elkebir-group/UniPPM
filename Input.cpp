@@ -11,9 +11,10 @@
 
 
 
-Input::Input(const char * filename) : m(M), n(N), r(R), F_l(F_lower), F_u(F_upper) {
+Input::Input(const char * filename, bool multi) : m(M), n(N), r(R), F_l(F_lower), F_u(F_upper) {
     std::ifstream fin(filename);
     fin >> M >> N;
+    if (multi) N++;
 
     F_lower = new double *[m];
     F_upper = new double *[m];
@@ -22,12 +23,16 @@ Input::Input(const char * filename) : m(M), n(N), r(R), F_l(F_lower), F_u(F_uppe
     for (int i = 0; i < m; i++) {
         F_lower[i] = ptr + i * n;
         F_upper[i] = ptr + (i + m) * n;
-        for (int j = 0; j < n; j++){
+        for (int j = 0; j < n-(multi?1:0); j++){
             fin >> F_lower[i][j] >> F_upper[i][j];
         }
+        if (multi) {
+            F_lower[i][n - 1] = 0;
+            F_upper[i][n - 1] = 1-1e9;
+        }
     }
-
     fin >> R;
+    if (multi) R = n-1;
 }
 
 Input::~Input() {
@@ -36,9 +41,10 @@ Input::~Input() {
     delete [] F_lower;
 }
 
-Input::Input(const Input_Reads &In, const double &alpha): m(M), n(N), r(R), F_l(F_lower), F_u(F_upper) {
+Input::Input(const Input_Reads &In, const double &alpha, bool multi): m(M), n(N), r(R), F_l(F_lower), F_u(F_upper) {
     M = In.m;
     N = In.n;
+    if (multi) N++;
 
     F_lower = new double *[m];
     F_upper = new double *[m];
@@ -47,14 +53,19 @@ Input::Input(const Input_Reads &In, const double &alpha): m(M), n(N), r(R), F_l(
     for (int i = 0; i < m; i++) {
         F_lower[i] = ptr + i * n;
         F_upper[i] = ptr + (i + m) * n;
-        for (int j = 0; j < n; j++){
+        for (int j = 0; j < n-(multi?1:0); j++){
 //            beta_distribution<> dis(In.var[i][j]+0.5, In.ref[i][j]+0.5)
             F_lower[i][j] = In.var[i][j] ? boost::math::ibeta_inv(In.var[i][j]+0.5, In.ref[i][j]+0.5,(1-alpha)/2) : 0;
             F_upper[i][j] = In.ref[i][j] ? boost::math::ibeta_inv(In.var[i][j]+0.5, In.ref[i][j]+0.5,(1+alpha)/2) : 1;
         }
+        if (multi) {
+            F_lower[i][n - 1] = 0;
+            F_upper[i][n - 1] = 1-1e-9;
+        }
     }
 
     R = In.r;
+    if (multi) R = n-1;
 }
 
 

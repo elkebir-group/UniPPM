@@ -19,6 +19,7 @@ string input_file,output_file;
 int n_samples,n_bits;//,n_intervals;
 //double approx_coef = -1, help_approx_coef;
 long long seed;
+bool mul;
 
 int timeout,force_layer;
 
@@ -58,6 +59,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'R':
                 force_layer = stoi(it->second);
+                break;
+            case 'M':
+                mul = stoi(it->second)!=0;
         }
     }
     for (auto it = p_options.begin();it!=p_options.end();it++) {
@@ -84,6 +88,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'R':
                 force_layer = 2;
+                break;
+            case 'M':
+                mul = false;
         }
     }
     srand(seed);
@@ -92,7 +99,7 @@ void parse_argument(int argc,char * argv[]){
 int main(int argc, char * argv[]) {
     auto start = chrono::high_resolution_clock::now();
     parse_argument(argc,argv);
-    Input raw_in(input_file.c_str());
+    Input raw_in(input_file.c_str(),mul);
 
     Input_int in(raw_in,n_bits);
 

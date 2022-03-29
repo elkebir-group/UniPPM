@@ -25,9 +25,9 @@ private:
 
 class Input {
 public:
-    Input(const char * filename);
+    Input(const char * filename, bool multi);
 
-    Input(const Input_Reads& In, const double &alpha);
+    Input(const Input_Reads& In, const double &alpha, bool multi);
 
     ~Input();
 

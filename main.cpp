@@ -19,12 +19,13 @@ string input_file,output_file;
 int n_samples,n_bits,n_intervals;
 double approx_coef = -1, help_approx_coef;
 long long seed;
+bool mul;
 
 int timeout,force_layer;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-T","-R"});
+    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-T","-R","-M"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -67,6 +68,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'R':
                 force_layer = stoi(it->second);
+                break;
+            case 'M':
+                mul = stoi(it->second)!=0;
         }
     }
 
@@ -106,6 +110,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'R':
                 force_layer = 2;
+                break;
+            case 'M':
+                mul = false;
         }
     }
     srand(seed);
@@ -120,11 +127,12 @@ int main(int argc, char * argv[]) {
     vector<pair<int,int> > edges;
 #define m_a ((l_a+r_a)/2)
     while (r_a-l_a>EPS){
-        Input transform_in(raw_in,m_a);
+        Input transform_in(raw_in,m_a,mul);
         Input_int in(transform_in,n_bits);
         AncestryGraph Gf(in);
         Solver tester(Gf);
         bool att = tester.attempt(tester.self_solver(),&edges);
+
         if(att)
             r_a = m_a;
         else
@@ -133,10 +141,11 @@ int main(int argc, char * argv[]) {
     t_alpha = r_a;
     double llh;
     {
-        Input transform_in(raw_in,t_alpha);
+        Input transform_in(raw_in,t_alpha,mul);
         Input_int in(transform_in, n_bits);
-        Likelihood LLH(in,raw_in,n_intervals);
+        Likelihood LLH(in,raw_in,n_intervals,mul);
         llh = LLH.LLH(edges);
+
     }
 
 
@@ -146,8 +155,8 @@ int main(int argc, char * argv[]) {
     l_a = EPS,r_a = 1-EPS;
     double lower_bound_ll = 1e300;
     while (r_a-l_a>EPS && abs(lower_bound_ll-target)>EPS){
-        Input transform_in(raw_in,m_a);
-        lower_bound_ll = lower_bound_llh(raw_in,transform_in,n_bits);
+        Input transform_in(raw_in,m_a,mul);
+        lower_bound_ll = lower_bound_llh(raw_in,transform_in,n_bits,mul);
         if(lower_bound_ll>target)
             l_a = m_a;
         else
@@ -162,11 +171,11 @@ int main(int argc, char * argv[]) {
 #undef m_a
     cout<<"[UniPPM] using "<< t_alpha << " as the final alpha."<<endl;
 
-    Input transform_in(raw_in,pow(t_alpha,1.0/(raw_in.n*raw_in.m)));
+    Input transform_in(raw_in,pow(t_alpha,1.0/(raw_in.n*raw_in.m)),mul);
     Input_int in(transform_in,n_bits);
     AncestryGraph Gf(in);
     Solver solver(Gf,timeout,force_layer);
-    Likelihood LLH(in,raw_in,n_bits);
+    Likelihood LLH(in,raw_in,n_bits,mul);
 
     map<vector<pair<int,int> >,int> res;
     solver.sampling(n_samples * 2, res);
@@ -195,11 +204,16 @@ int main(int argc, char * argv[]) {
         if (ll < filtering){
             continue;
         }
-        fprintf(fout,"# %d edges, tree %d, %d sample, log-likelihood: %lf\n",raw_in.n-1,unique,it->second,ll);
+        fprintf(fout,"# %d edges, tree %d, %d sample, log-likelihood: %lf\n",it->first.size(),unique,it->second,ll);
         unique ++ ;
         total += it->second;
         for(auto edge:it->first){
-            fprintf(fout,"%d %d\n",edge.first,edge.second);
+            if (mul && edge.first == raw_in.n){
+                fprintf(fout,"%d %d\n",-1,edge.second);
+            }
+            else {
+                fprintf(fout, "%d %d\n", edge.first, edge.second);
+            }
         }
     }
 

@@ -30,7 +30,7 @@ Solver::Solver(const AncestryGraph &in, int timeout, int force_layer):F(),In(in)
         else _e_o_size = In.ind(j).size();
 
         std::vector<CMSat::Lit> j_p(_e_o_size);
-        std::vector<CMSat::Lit>::iterator it = j_p.begin();
+        auto it = j_p.begin();
         if (In.In.r < 0) {
             *it = r_vars[j];
             it++;
@@ -38,7 +38,6 @@ Solver::Solver(const AncestryGraph &in, int timeout, int force_layer):F(),In(in)
         for (int i = 0; i < In.ind(j).size(); i++) {
             int i_ = In.ind(j)[i];
             *it = edge2var[std::pair<int, int>(i_, j)];
-
             it++;
         }
         F.Exact_One(j_p);

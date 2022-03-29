@@ -5,8 +5,8 @@
 #include "Likelihood.h"
 #include <cmath>
 
-Likelihood::Likelihood(const Input_int &Gf, const Input_Reads &reads, const int &N_intervals):
-In(Gf),Reads(reads),n_split(N_intervals+1)
+Likelihood::Likelihood(const Input_int &Gf, const Input_Reads &reads, const int &N_intervals, bool mul):
+In(Gf),Reads(reads),n_split(N_intervals+1),mul(mul)
 {
     F_lower = new double *[In.m];
     F_upper = new double *[In.m];
@@ -30,9 +30,6 @@ In(Gf),Reads(reads),n_split(N_intervals+1)
     }
 
 }
-
-
-#define logbinom(N,K,P,NN) (lgamma((N)+1)-lgamma((K)+1)-lgamma((N)-(K)+1)+(K)*log_(P,NN)+((N)-(K))*log_(1-(P),NN))
 
 double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
 
@@ -93,6 +90,7 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
     for (int i = 0; i < In.m; i++){
         for (int j = 0; j < In.n; j++){
             for (int k = 0; k < n_split; k++){
+                if(mul && j==In.n) continue;
                 objective ->SetCoefficient(lambda[i][j][k],
                                Reads.var[i][j]*log_(split[i][j][k],In.n_bits)+
                                Reads.ref[i][j]*log_(1-split[i][j][k],In.n_bits));
@@ -104,6 +102,7 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
     double ans = 0;
     for (int i = 0; i < In.m; i++) {
         for (int j = 0; j < In.n; j++) {
+            if(mul && j==In.n) continue;
             ans += logbinom(Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j],f[i][j]->solution_value(),In.n_bits);
         }
     }
@@ -120,8 +119,8 @@ Likelihood::~Likelihood() {
     delete ptr2;
 }
 
-double lower_bound_llh(const Input_Reads & reads, const Input & intervals, const int & n_bits) {
-    assert(reads.m==intervals.m && reads.n==intervals.n);
+double lower_bound_llh(const Input_Reads & reads, const Input & intervals, const int & n_bits, bool mul) {
+    assert(reads.m==intervals.m && reads.n==(intervals.n-mul));
     double ans = 0;
     for(int i = 0; i < reads.m; i++)
         for(int j = 0; j < reads.n; j++) {
