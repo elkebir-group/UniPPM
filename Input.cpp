@@ -55,8 +55,16 @@ Input::Input(const Input_Reads &In, const double &alpha, bool multi): m(M), n(N)
         F_upper[i] = ptr + (i + m) * n;
         for (int j = 0; j < n-(multi?1:0); j++){
 //            beta_distribution<> dis(In.var[i][j]+0.5, In.ref[i][j]+0.5)
-            F_lower[i][j] = In.var[i][j] ? boost::math::ibeta_inv(In.var[i][j]+0.5, In.ref[i][j]+0.5,(1-alpha)/2) : 0;
-            F_upper[i][j] = In.ref[i][j] ? boost::math::ibeta_inv(In.var[i][j]+0.5, In.ref[i][j]+0.5,(1+alpha)/2) : 1;
+            if (alpha>=1){
+                F_lower[i][j] = 0;
+                F_upper[i][j] = 1-1e-9;
+            }
+            else {
+                F_lower[i][j] = In.var[i][j] ? boost::math::ibeta_inv(In.var[i][j] + 0.5, In.ref[i][j] + 0.5,
+                                                                      (1 - alpha) / 2) : 0;
+                F_upper[i][j] = In.ref[i][j] ? boost::math::ibeta_inv(In.var[i][j] + 0.5, In.ref[i][j] + 0.5,
+                                                                      (1 + alpha) / 2) : (1-1e-9);
+            }
         }
         if (multi) {
             F_lower[i][n - 1] = 1-1e-9;

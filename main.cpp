@@ -204,7 +204,7 @@ int main(int argc, char * argv[]) {
         if (ll < filtering){
             continue;
         }
-        fprintf(fout,"# %d edges, tree %d, %d sample, log-likelihood: %lf\n",it->first.size(),unique,it->second,ll);
+        fprintf(fout,"# %d edges, tree %d, %d sample, log-likelihood: %lf\n",(int)(it->first.size()),unique,it->second,ll);
         unique ++ ;
         total += it->second;
         for(auto edge:it->first){

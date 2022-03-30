@@ -31,5 +31,5 @@ add_executable(unippm-reads main.cpp Input.cpp Input.h AncestryGraph.cpp Ancestr
 
 add_executable(unippm-freqs main-freqs.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h) #Parallel.cpp Parallel.h)
 
-
+add_executable(enumerate-likelihood main-enumllh.cpp main.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h)
 
