@@ -5,6 +5,8 @@
 #include "Likelihood.h"
 #include <cmath>
 
+#define logbinom(N,K,P,NN) (lgamma((N)+1)-lgamma((K)+1)-lgamma((N)-(K)+1)+(K)*log_(P,NN)+((N)-(K))*log_(1-(P),NN))
+
 Likelihood::Likelihood(const Input_int &Gf, const Input_Reads &reads, const int &N_intervals, bool mul):
 In(Gf),Reads(reads),n_split(N_intervals+1),mul(mul)
 {
@@ -106,6 +108,7 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
             ans += logbinom(Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j],f[i][j]->solution_value(),In.n_bits);
         }
     }
+
     return ans;
 }
 
@@ -133,7 +136,7 @@ double lower_bound_llh(const Input_Reads & reads, const Input & intervals, const
 
 double log_(double x, int n_bits) {
     if(x<(1.0/(1<<n_bits))){
-        return -log(n_bits)-(1.0/(1<<n_bits)-x)*n_bits;
+        return -log(n_bits)-(1.0/(1<<n_bits)-x)*(1<<n_bits);
     }
     return log(x);
 }

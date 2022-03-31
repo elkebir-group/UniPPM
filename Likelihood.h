@@ -5,7 +5,6 @@
 #ifndef UNIPPM_LIKELIHOOD_H
 #define UNIPPM_LIKELIHOOD_H
 
-#define logbinom(N,K,P,NN) (lgamma((N)+1)-lgamma((K)+1)-lgamma((N)-(K)+1)+(K)*log_(P,NN)+((N)-(K))*log_(1-(P),NN))
 
 #include "AncestryGraph.h"
 #include "Input.h"
