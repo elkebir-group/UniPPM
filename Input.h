@@ -5,8 +5,6 @@
 #ifndef UNIPPM_INPUT_H
 #define UNIPPM_INPUT_H
 
-
-
 class Input_Reads {
 public:
     Input_Reads(const char * filename);

@@ -21,8 +21,11 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(or-tools)
+#find_package(GUROBI REQUIRED)
 
+#include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS} ${APPROXMC_INCLUDE_DIRS} ${UNIGEN_INCLUDE_DIRS} ${BOOST_INCLUDE_DIRS} ${GUROBI_INCLUDE_DIRS})
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS} ${APPROXMC_INCLUDE_DIRS} ${UNIGEN_INCLUDE_DIRS} ${BOOST_INCLUDE_DIRS} ${ORTOOLS_INCLUDE_DIRS})
+
 set( CommonLibs m ${CRYPTOMINISAT5_LIBRARIES} ${APPROXMC_LIBRARIES} ${UNIGEN_LIBRARIES} )
 
 link_libraries(${CommonLibs} Boost::boost ortools::ortools)
@@ -31,5 +34,5 @@ add_executable(unippm-reads main.cpp Input.cpp Input.h AncestryGraph.cpp Ancestr
 
 add_executable(unippm-freqs main-freqs.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h) #Parallel.cpp Parallel.h)
 
-add_executable(enumerate-likelihood main-enumllh.cpp main.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h)
+add_executable(enumerate-likelihood main-enumllh.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h)
 
