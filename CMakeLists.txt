@@ -17,7 +17,7 @@ set(BUILD_DEPS ON)
 FetchContent_Declare(
         or-tools
         GIT_REPOSITORY https://github.com/google/or-tools.git
-        GIT_TAG        master
+        GIT_TAG        v9.3
 )
 
 FetchContent_MakeAvailable(or-tools)
