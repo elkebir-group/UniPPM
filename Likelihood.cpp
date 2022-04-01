@@ -6,6 +6,7 @@
 #include <cmath>
 
 #define logbinom(N,K,P,NN) (lgamma((N)+1)-lgamma((K)+1)-lgamma((N)-(K)+1)+(K)*log_(P,NN)+((N)-(K))*log_(1-(P),NN))
+#define logcomb(N,K) (lgamma((N)+1)-lgamma((K)+1)-lgamma((N)-(K)+1))
 
 Likelihood::Likelihood(const Input_int &Gf, const Input_Reads &reads, const int &N_intervals, bool mul):
 In(Gf),Reads(reads),n_split(N_intervals+1),mul(mul)
@@ -92,7 +93,7 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
     for (int i = 0; i < In.m; i++){
         for (int j = 0; j < In.n; j++){
             for (int k = 0; k < n_split; k++){
-                if(mul && j==In.n) continue;
+                if(mul && j==(In.n-1)) continue;
                 objective ->SetCoefficient(lambda[i][j][k],
                                Reads.var[i][j]*log_(split[i][j][k],In.n_bits)+
                                Reads.ref[i][j]*log_(1-split[i][j][k],In.n_bits));
@@ -101,11 +102,17 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
     }
     objective->SetMaximization();
     solver->Solve();
+    auto tmp_ans = objective->Value();
     double ans = 0;
     for (int i = 0; i < In.m; i++) {
         for (int j = 0; j < In.n; j++) {
-            if(mul && j==In.n) continue;
-            ans += logbinom(Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j],f[i][j]->solution_value(),In.n_bits);
+            if(mul && j==(In.n-1)) continue;
+            auto llb = logbinom(Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j],f[i][j]->solution_value(),In.n_bits);
+            printf("%d,%d,%lf,%d: ",Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j],f[i][j]->solution_value(),In.n_bits);
+            printf("%lf %lf %lf %lf\n", logcomb(Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j]),
+                   log_(f[i][j]->solution_value(),In.n_bits),
+                   log_(1-f[i][j]->solution_value(),In.n_bits),llb);
+            ans += llb;
         }
     }
 
@@ -114,12 +121,12 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
 
 
 Likelihood::~Likelihood() {
-    delete F_upper;
-    delete F_lower;
-    delete ptr1;
-    delete split;
-    delete ptpt2;
-    delete ptr2;
+    delete [] F_upper;
+    delete [] F_lower;
+    delete [] ptr1;
+    delete [] split;
+    delete [] ptpt2;
+    delete [] ptr2;
 }
 
 double lower_bound_llh(const Input_Reads & reads, const Input & intervals, const int & n_bits, bool mul) {
@@ -136,7 +143,7 @@ double lower_bound_llh(const Input_Reads & reads, const Input & intervals, const
 
 double log_(double x, int n_bits) {
     if(x<(1.0/(1<<n_bits))){
-        return -log(n_bits)-(1.0/(1<<n_bits)-x)*(1<<n_bits);
+        return -log(n_bits)-(1.0/(1<<n_bits)-x)*(1<<n_bits)*(1<<n_bits);
     }
     return log(x);
 }
