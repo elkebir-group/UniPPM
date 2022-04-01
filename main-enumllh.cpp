@@ -13,10 +13,12 @@ map<string,string> vm;
 string input_file,output_file;
 int n_bits,n_intervals;
 bool mul;
+long long start_ind;
+int len;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-N","-I","-M"});
+    set<string> p_options({"-i","-o","-N","-I","-M","-s","-L"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -44,6 +46,12 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'M':
                 mul = stoi(it->second)!=0;
+                break;
+            case 's':
+                start_ind = stoll(it->second);
+                break;
+            case 'L':
+                len = stoi(it->second);
         }
     }
 
@@ -65,6 +73,12 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'M':
                 mul = false;
+                break;
+            case 's':
+                start_ind = 0;
+                break;
+            case 'L':
+                len = -1;
         }
     }
 }
@@ -146,11 +160,26 @@ int main(int argc,char * argv[]){
     Likelihood llh(llhrange_int,raw_in,n_intervals,mul);
 
     list<vector<pair<int,int> > > all_trees;
-    vector<int> prufer_seq(llhrange_int.n-2,0);
-    prufer_seq[0]=-1;
+
+    vector<int> prufer_seq(llhrange_int.n-2);
+
     int i;
-    for(i=0;prufer_seq_increment(prufer_seq);i++){
-        get_edge_set(prufer_seq,llhrange_int.r,all_trees);
+    long long _tmp;
+    for(i=0,_tmp=start_ind;i<llhrange_int.n-2;i++){
+        prufer_seq[i] = _tmp%llhrange_int.n;
+        _tmp/=llhrange_int.n;
+    }
+    prufer_seq[0]-=1;
+
+    if(len<0) {
+        for (i = 0; prufer_seq_increment(prufer_seq); i++) {
+            get_edge_set(prufer_seq, llhrange_int.r, all_trees);
+        }
+    }
+    else {
+        for (i = 0; prufer_seq_increment(prufer_seq) && i < len; i++) {
+            get_edge_set(prufer_seq, llhrange_int.r, all_trees);
+        }
     }
 
     i=0;
