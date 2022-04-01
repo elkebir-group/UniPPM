@@ -49,7 +49,7 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
         }
     }
 
-    std::unique_ptr<operations_research::MPSolver> solver(operations_research::MPSolver::CreateSolver("SCIP"));
+    auto solver(operations_research::MPSolver::CreateSolver("SCIP"));
     std::vector<std::vector<operations_research::MPVariable*> >
             f(In.m,std::vector<operations_research::MPVariable *>(In.n,NULL));
     std::vector<std::vector<std::vector<operations_research::MPVariable*> > >
@@ -110,6 +110,8 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
             ans += logbinom(Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j],f[i][j]->solution_value(),In.n_bits);
         }
     }
+
+    delete solver;
 
     return ans;
 }
