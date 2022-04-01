@@ -5,8 +5,8 @@
 #include "Likelihood.h"
 #include <cmath>
 
-#define logbinom(N,K,P,NN) (lgamma((N)+1)-lgamma((K)+1)-lgamma((N)-(K)+1)+(K)*log_(P,NN)+((N)-(K))*log_(1-(P),NN))
 #define logcomb(N,K) (lgamma((N)+1)-lgamma((K)+1)-lgamma((N)-(K)+1))
+#define logbinom(N,K,P,NN) (logcomb(N,K)+(K)*log_(P,NN)+((N)-(K))*log_(1-(P),NN))
 
 Likelihood::Likelihood(const Input_int &Gf, const Input_Reads &reads, const int &N_intervals, bool mul):
 In(Gf),Reads(reads),n_split(N_intervals+1),mul(mul)

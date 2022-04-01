@@ -67,8 +67,8 @@ Input::Input(const Input_Reads &In, const double &alpha, bool multi): m(M), n(N)
             }
         }
         if (multi) {
-            F_lower[i][n - 1] = 1-1e-9;
-            F_upper[i][n - 1] = 1-1e-9;
+            F_lower[i][n - 1] = 0.5;
+            F_upper[i][n - 1] = 0.5;
         }
     }
 
