@@ -107,12 +107,7 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
     for (int i = 0; i < In.m; i++) {
         for (int j = 0; j < In.n; j++) {
             if(mul && j==(In.n-1)) continue;
-            auto llb = logbinom(Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j],f[i][j]->solution_value(),In.n_bits);
-            printf("%d,%d,%lf,%d: ",Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j],f[i][j]->solution_value(),In.n_bits);
-            printf("%lf %lf %lf %lf\n", logcomb(Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j]),
-                   log_(f[i][j]->solution_value(),In.n_bits),
-                   log_(1-f[i][j]->solution_value(),In.n_bits),llb);
-            ans += llb;
+            ans += logbinom(Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j],f[i][j]->solution_value(),In.n_bits);
         }
     }
 
