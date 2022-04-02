@@ -8,7 +8,6 @@
 
 #include "AncestryGraph.h"
 #include "Input.h"
-#include "ortools/linear_solver/linear_solver.h"
 
 
 class Likelihood {

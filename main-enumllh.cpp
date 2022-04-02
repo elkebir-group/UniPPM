@@ -4,6 +4,10 @@
 
 #include <iostream>
 #include <queue>
+#include <map>
+#include <string>
+#include <set>
+#include <list>
 
 #include "Likelihood.h"
 

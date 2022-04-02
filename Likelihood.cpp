@@ -4,6 +4,7 @@
 
 #include "Likelihood.h"
 #include <cmath>
+#include "gurobi_c++.h"
 
 #define logcomb(N,K) (lgamma((N)+1)-lgamma((K)+1)-lgamma((N)-(K)+1))
 #define logbinom(N,K,P,NN) (logcomb(N,K)+(K)*log_(P,NN)+((N)-(K))*log_(1-(P),NN))
@@ -49,18 +50,20 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
         }
     }
 
-    auto solver(operations_research::MPSolver::CreateSolver("SCIP"));
-    std::vector<std::vector<operations_research::MPVariable*> >
-            f(In.m,std::vector<operations_research::MPVariable *>(In.n,NULL));
-    std::vector<std::vector<std::vector<operations_research::MPVariable*> > >
-            lambda(In.m,std::vector<std::vector<operations_research::MPVariable *> >
-            (In.n,std::vector<operations_research::MPVariable *> (n_split,NULL) ));
+//    auto solver(operations_research::MPSolver::CreateSolver("SCIP"));
+    GRBEnv env;
+    GRBModel model(env);
+    std::vector<std::vector<GRBVar> >
+            f(In.m,std::vector<GRBVar>(In.n));
+    std::vector<std::vector<std::vector<GRBVar> > >
+            lambda(In.m,std::vector<std::vector<GRBVar> >
+            (In.n,std::vector<GRBVar> (n_split) ));
     for (int i = 0; i < In.m; i++) {
         for (int j = 0; j < In.n; j++) {
-            f[i][j] = solver ->MakeNumVar(F_lower[i][j],F_upper[i][j],
+            f[i][j] = model.addVar(F_lower[i][j], F_upper[i][j], 0, GRB_CONTINUOUS,
                                           "f["+std::to_string(i)+"]["+std::to_string(j)+"]");
             for(int k = 0; k < n_split; k++){
-                lambda[i][j][k] = solver ->MakeNumVar(0,1,
+                lambda[i][j][k] = model.addVar(0, 1, 0, GRB_CONTINUOUS,
                                                       "lambda["+std::to_string(i)+"]["+
                                                       std::to_string(j)+"]["+
                                                       std::to_string(k)+"]");
@@ -68,52 +71,66 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
         }
     }
 
+    GRBLinExpr sum;
     for (int i = 0; i < In.m; i++){
         for (int j = 0 ; j < In.n; j++){
-            auto sc = solver ->MakeRowConstraint(0,solver->infinity());
-            sc ->SetCoefficient(f[i][j],1);
             for (auto it = outd[j].begin();it!=outd[j].end();it++)
-                sc ->SetCoefficient(f[i][*it],-1);
+                sum += f[i][*it];
+            model.addConstr(f[i][j] >= sum);
+            sum.clear();
         }
     }
 
+    GRBLinExpr sum2;
     for (int i = 0; i < In.m; i++) {
         for (int j = 0; j < In.n; j++) {
-            auto fc = solver -> MakeRowConstraint(0,0);
-            fc->SetCoefficient(f[i][j],1);
-            auto lc = solver ->MakeRowConstraint(1,1);
             for (int k = 0; k < n_split; k++){
-                fc ->SetCoefficient(lambda[i][j][k],-split[i][j][k]);
-                lc ->SetCoefficient(lambda[i][j][k],1);
+                sum += lambda[i][j][k];
+                sum2 += lambda[i][j][k] * split[i][j][k];
             }
+            model.addConstr(sum == 1);
+            model.addConstr(sum2 == f[i][j]);
+            sum.clear();
+            sum2.clear();
         }
     }
 
-    auto objective = solver ->MutableObjective();
     for (int i = 0; i < In.m; i++){
         for (int j = 0; j < In.n; j++){
             for (int k = 0; k < n_split; k++){
+                // for the case where we allow multiple children from the normal clone (mul == true),
+                // there will be an artificial mutation (indexed by n-1), which must be skipped as it
+                // won't have read counts associated with it
                 if(mul && j==(In.n-1)) continue;
-                objective ->SetCoefficient(lambda[i][j][k],
-                               Reads.var[i][j]*log_(split[i][j][k],In.n_bits)+
-                               Reads.ref[i][j]*log_(1-split[i][j][k],In.n_bits));
+
+                sum += lambda[i][j][k] * (Reads.var[i][j]*log_(split[i][j][k],In.n_bits)+
+                                          Reads.ref[i][j]*log_(1-split[i][j][k],In.n_bits));
             }
         }
     }
-    objective->SetMaximization();
-    solver->Solve();
-    auto tmp_ans = objective->Value();
-    double ans = 0;
+
+    model.setObjective(sum, GRB_MAXIMIZE);
+//    model.update();
+    model.optimize();
+
+    auto obj_val_inferred = model.get(GRB_DoubleAttr_ObjVal);
+    double log_binom_coeffs = 0;
+    double obj_val = 0;
     for (int i = 0; i < In.m; i++) {
         for (int j = 0; j < In.n; j++) {
             if(mul && j==(In.n-1)) continue;
-            ans += logbinom(Reads.var[i][j]+Reads.ref[i][j],Reads.var[i][j],f[i][j]->solution_value(),In.n_bits);
+            log_binom_coeffs += logcomb(Reads.var[i][j] + Reads.ref[i][j],
+                                        Reads.var[i][j]);
+            obj_val += logbinom(Reads.var[i][j] + Reads.ref[i][j],
+                            Reads.var[i][j],
+                            f[i][j].get(GRB_DoubleAttr_X), In.n_bits);
         }
     }
 
-    delete solver;
+    std::cout << "GUROBI: " << obj_val_inferred + log_binom_coeffs << " -- recomputed: " << obj_val << std::endl;
+    std::cout << "GUROBI: " << obj_val_inferred + log_binom_coeffs << " -- recomputed: " << obj_val << std::endl;
 
-    return ans;
+    return obj_val;
 }
 
 
