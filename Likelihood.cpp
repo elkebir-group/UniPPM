@@ -5,6 +5,7 @@
 #include "Likelihood.h"
 #include <cmath>
 #include "gurobi_c++.h"
+#include <cassert>
 
 #define logcomb(N,K) (lgamma((N)+1)-lgamma((K)+1)-lgamma((N)-(K)+1))
 #define logbinom(N,K,P,NN) (logcomb(N,K)+(K)*log_(P,NN)+((N)-(K))*log_(1-(P),NN))
