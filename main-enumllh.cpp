@@ -197,12 +197,13 @@ int main(int argc,char * argv[]){
     else {
         ifstream fin(query_file);
         fin >> len;
+        getline(fin,query_file);
         vector<pair<int,int> > tree(llhrange_int.n-1);
         for (i = 0; i < len; i++){
             getline(fin,query_file);
-            for(auto e:tree) {
-                fin >> e.first >> e.second;
-                if (e.first < 0) e.first+=llhrange_int.n;
+            for(auto it=tree.begin();it!=tree.end();it++) {
+                fin >> it->first >> it->second;
+                if (it->first < 0) it->first+=llhrange_int.n;
             }
             all_trees.push_back(tree);
         }
