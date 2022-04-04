@@ -197,9 +197,9 @@ int main(int argc,char * argv[]){
     else {
         ifstream fin(query_file);
         fin >> len;
-        getline(fin,query_file);
         vector<pair<int,int> > tree(llhrange_int.n-1);
         for (i = 0; i < len; i++){
+            getline(fin,query_file);
             getline(fin,query_file);
             for(auto it=tree.begin();it!=tree.end();it++) {
                 fin >> it->first >> it->second;
