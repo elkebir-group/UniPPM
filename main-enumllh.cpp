@@ -8,6 +8,7 @@
 #include <string>
 #include <set>
 #include <list>
+#include <fstream>
 
 #include "Likelihood.h"
 
@@ -19,10 +20,11 @@ int n_bits,n_intervals;
 bool mul;
 long long start_ind;
 int len;
+string query_file;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-N","-I","-M","-s","-L"});
+    set<string> p_options({"-i","-o","-N","-I","-M","-s","-L","-Q"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -56,6 +58,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'L':
                 len = stoi(it->second);
+                break;
+            case 'Q':
+                query_file = it->second;
         }
     }
 
@@ -83,6 +88,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'L':
                 len = -1;
+                break;
+            case 'Q':
+                query_file="";
         }
     }
 }
@@ -175,14 +183,28 @@ int main(int argc,char * argv[]){
     }
     prufer_seq[0]-=1;
 
-    if(len<0) {
-        for (i = 0; prufer_seq_increment(prufer_seq); i++) {
-            get_edge_set(prufer_seq, llhrange_int.r, all_trees);
+    if (query_file.empty()) {
+        if (len < 0) {
+            for (i = 0; prufer_seq_increment(prufer_seq); i++) {
+                get_edge_set(prufer_seq, llhrange_int.r, all_trees);
+            }
+        } else {
+            for (i = 0; prufer_seq_increment(prufer_seq) && i < len; i++) {
+                get_edge_set(prufer_seq, llhrange_int.r, all_trees);
+            }
         }
     }
     else {
-        for (i = 0; prufer_seq_increment(prufer_seq) && i < len; i++) {
-            get_edge_set(prufer_seq, llhrange_int.r, all_trees);
+        ifstream fin(query_file);
+        fin >> len;
+        vector<pair<int,int> > tree(llhrange_int.n-1);
+        for (i = 0; i < len; i++){
+            getline(fin,query_file);
+            for(auto e:tree) {
+                fin >> e.first >> e.second;
+                if (e.first < 0) e.first+=llhrange_int.n;
+            }
+            all_trees.push_back(tree);
         }
     }
 
