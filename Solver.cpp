@@ -7,7 +7,8 @@
 #include <chrono>
 #include <utility>
 
-Solver::Solver(const AncestryGraph &in, int timeout, int force_layer):F(),In(in),timeout(timeout),force_layer(force_layer){
+Solver::Solver(const AncestryGraph &in, bool keep_appmc_obj, int force_layer):
+F(),In(in),keep_appmc_obj(keep_appmc_obj),force_layer(force_layer){
 
     std::vector<CMSat::Lit> r_vars;
     if (In.In.r < 0){
@@ -80,7 +81,7 @@ Solver::Solver(const AncestryGraph &in, int timeout, int force_layer):F(),In(in)
     }
 
     //Cycle prevention
-    std::vector<std::vector<CMSat::Lit> > relation(In.In.n, std::vector<CMSat::Lit>(In.In.n));
+    relation = std::vector<std::vector<CMSat::Lit> >(In.In.n, std::vector<CMSat::Lit>(In.In.n));
     for (int i = 0; i < In.In.n; i++){
         for (int j = 0; j < In.In.n; j++) {
             if (i==j) {
@@ -163,7 +164,7 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
 
     set_up_recursive();
 
-    F.UniPPM_Preparing(timeout,0,force_layer,this,tmp_cs);
+    F.UniPPM_Preparing(keep_appmc_obj,0,force_layer,this,tmp_cs);
     tmp_cs.clear();
     F.UniPPM_Sampling(n_sample,0,this,tmp_cs,data);
 
@@ -218,6 +219,10 @@ void Solver::set_up_recursive() {
             CNF_recursive_sets[i].push_back(edge2var[std::pair(j,step_order[i])].var());
         }
     }
+}
+
+void Solver::add_additional_constraints(const AdditionalData & ad) {
+    ad.Enforce_constraints(&F, relation);
 }
 
 

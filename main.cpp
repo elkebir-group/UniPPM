@@ -20,12 +20,13 @@ int n_samples,n_bits,n_intervals;
 double approx_coef = -1, help_approx_coef;
 long long seed;
 bool mul;
+string add_data;
 
 int timeout,force_layer;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-T","-R","-M"});
+    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-T","-R","-M","-C"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -71,6 +72,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'M':
                 mul = stoi(it->second)!=0;
+                break;
+            case 'C':
+                add_data = it->second;
         }
     }
 
@@ -113,6 +117,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'M':
                 mul = false;
+                break;
+            case 'C':
+                add_data = "";
         }
     }
     srand(seed);
@@ -122,6 +129,7 @@ int main(int argc, char * argv[]) {
     auto start = chrono::high_resolution_clock::now();
     parse_argument(argc,argv);
     Input_Reads raw_in(input_file.c_str());
+    AdditionalData additionalData (raw_in.n, add_data);
 
     double l_a = EPS,r_a = 1-EPS, t_alpha;
     vector<pair<int,int> > edges;
@@ -131,6 +139,7 @@ int main(int argc, char * argv[]) {
         Input_int in(transform_in,n_bits);
         AncestryGraph Gf(in);
         Solver tester(Gf);
+        tester.add_additional_constraints(additionalData);
         bool att = tester.attempt(tester.self_solver(),&edges);
 
         if(att)
@@ -163,18 +172,20 @@ int main(int argc, char * argv[]) {
             r_a = m_a;
     }
     if (m_a < t_alpha){
-        cout<<"[UniPPM] approx alpha overrided by min alpha"<<endl;
+        cerr<<"[UniPPM] warning: given help_approx_coef is too large, overrided by min_alpha required."<<endl;
     }
     else{
         t_alpha = m_a;
     }
 #undef m_a
-    cout<<"[UniPPM] using "<< t_alpha << " as the final alpha."<<endl;
+    cout<<"[UniPPM] using "<< setprecision(11) << t_alpha << " as the final alpha."<<endl;
 
     Input transform_in(raw_in,pow(t_alpha,1.0/(raw_in.n*raw_in.m)),mul);
+    transform_in.Show(cout);
     Input_int in(transform_in,n_bits);
     AncestryGraph Gf(in);
     Solver solver(Gf,timeout,force_layer);
+    solver.add_additional_constraints(additionalData);
     Likelihood LLH(in,raw_in,n_bits,mul);
 
     map<vector<pair<int,int> >,int> res;

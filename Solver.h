@@ -11,11 +11,12 @@
 #include <unigen/unigen.h>
 #include <map>
 #include <mutex>
+#include "AdditionalData.h"
 
 class Solver {
     friend class CNF;
 public:
-    explicit Solver(const AncestryGraph & In, int timeout = 10000, int force_layer = 2);
+    explicit Solver(const AncestryGraph & In, bool keep_appmc_obj = true, int force_layer = 2);
 
     ~Solver();
 
@@ -32,6 +33,8 @@ public:
 
     void set_up_recursive();
 
+    void add_additional_constraints(const AdditionalData & ad);
+
 private:
 
     std::vector<std::vector<uint32_t> > CNF_recursive_sets;
@@ -43,7 +46,11 @@ private:
 
     CNF F;
 
-    int timeout, force_layer;
+    int /*timeout,*/ force_layer;
+
+    bool keep_appmc_obj;
+
+    std::vector<std::vector<CMSat::Lit> > relation;
 //    long long rec_t;
 };
 

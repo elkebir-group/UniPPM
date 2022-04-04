@@ -312,7 +312,7 @@ void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCou
 //    if (appmc) appmc->signal_stop();
 //}
 
-void CNF::UniPPM_Preparing(/*int timeout,*/ int rec_t, int rec_step, int force_layer, Solver *ptr,
+void CNF::UniPPM_Preparing(/*int timeout,*/ bool rec_t, int rec_step, int force_layer, Solver *ptr,
                            std::list<CMSat::Lit> &additional_clauses,
                            CNF::rec_node *root, const std::string &info_tag) {
     if(root == nullptr){

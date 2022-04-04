@@ -20,12 +20,13 @@ int n_samples,n_bits;//,n_intervals;
 //double approx_coef = -1, help_approx_coef;
 long long seed;
 bool mul;
+string add_data;
 
 int timeout,force_layer;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-s","-T","-R"});
+    set<string> p_options({"-i","-o","-n","-N","-s","-T","-R","-C"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -62,6 +63,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'M':
                 mul = stoi(it->second)!=0;
+                break;
+            case 'C':
+                add_data = it->second;
         }
     }
     for (auto it = p_options.begin();it!=p_options.end();it++) {
@@ -91,6 +95,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'M':
                 mul = false;
+                break;
+            case 'C':
+                add_data = "";
         }
     }
     srand(seed);
@@ -100,6 +107,7 @@ int main(int argc, char * argv[]) {
     auto start = chrono::high_resolution_clock::now();
     parse_argument(argc,argv);
     Input raw_in(input_file.c_str(),mul);
+    AdditionalData additionalData(raw_in.n,add_data);
 
     Input_int in(raw_in,n_bits);
 
@@ -107,6 +115,7 @@ int main(int argc, char * argv[]) {
 
     AncestryGraph Gf(in);
     Solver solver(Gf,timeout,force_layer);
+    solver.add_additional_constraints(additionalData);
 
     map<vector<pair<int,int> >,int> res;
     solver.sampling(n_samples, res);

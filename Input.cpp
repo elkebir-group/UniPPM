@@ -76,21 +76,32 @@ Input::Input(const Input_Reads &In, const double &alpha, bool multi): m(M), n(N)
     if (multi) R = n-1;
 }
 
+void Input::Show(std::ostream & out) {
+#define tout (out<<"[UniPPM] ")
+    out << "---------------[UniPPM]----------------" <<std::endl;
+    tout << "m:"<< m <<" n:"<< n << std::endl;
+    for (int i = 0; i < m; i++)
+        for (int j = 0; j < n; j++){
+            tout<< "["<<i<<"]["<<j<<"]:F_lower="<<F_lower[i][j]<<", F_upper="<<F_upper[i][j]<<std::endl;
+        }
+    out << "---------------[UniPPM]----------------" <<std::endl;
+#undef tout
+}
 
 
 Input_int::Input_int(const Input & In, const int &N_bits):m(In.m),n(In.n),r(In.r),Nn(N_bits),n_bits(Nn),F_l(F_lower),F_u(F_upper) {
-        F_lower = new int *[m];
-        F_upper = new int *[m];
-        ptr = new int[m*n*2];
+    F_lower = new int *[m];
+    F_upper = new int *[m];
+    ptr = new int[m * n * 2];
 
-        for (int i = 0; i < m; i++) {
-            F_lower[i] = ptr + i * n;
-            F_upper[i] = ptr + (i + m) * n;
-            for (int j = 0; j < n; j++){
-                F_lower[i][j] = int(In.F_l[i][j]*(1<<n_bits));
-                F_upper[i][j] = int(In.F_u[i][j]*(1<<n_bits));
-            }
+    for (int i = 0; i < m; i++) {
+        F_lower[i] = ptr + i * n;
+        F_upper[i] = ptr + (i + m) * n;
+        for (int j = 0; j < n; j++) {
+            F_lower[i][j] = int(In.F_l[i][j] * (1 << n_bits));
+            F_upper[i][j] = int(In.F_u[i][j] * (1 << n_bits));
         }
+    }
 }
 
 Input_int::~Input_int() {

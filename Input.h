@@ -5,6 +5,8 @@
 #ifndef UNIPPM_INPUT_H
 #define UNIPPM_INPUT_H
 
+#include <iostream>
+
 class Input_Reads {
 public:
     Input_Reads(const char * filename);
@@ -28,6 +30,8 @@ public:
     Input(const Input_Reads& In, const double &alpha, bool multi);
 
     ~Input();
+
+    void Show(std::ostream &);
 
     const int &m,&n,&r;
 
