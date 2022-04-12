@@ -21,10 +21,11 @@ bool mul;
 long long start_ind;
 int len;
 string query_file;
+string freq_output;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-N","-I","-M","-s","-L","-Q"});
+    set<string> p_options({"-i","-o","-N","-I","-M","-s","-L","-Q","-F"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -61,6 +62,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'Q':
                 query_file = it->second;
+                break;
+            case 'F':
+                freq_output = it->second;
         }
     }
 
@@ -91,6 +95,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'Q':
                 query_file="";
+                break;
+            case 'F':
+                freq_output="";
         }
     }
 }
@@ -211,8 +218,14 @@ int main(int argc,char * argv[]){
 
     i=0;
     auto fout = fopen(output_file.c_str(),"w");
+    FILE * freq_out = nullptr;
+    vector<vector<double> > *freq_tmp= nullptr;
+    if(!freq_output.empty()){
+        freq_out = fopen(freq_output.c_str(),"w");
+        freq_tmp = new vector<vector<double> >(llhrange_int.m,vector<double>(llhrange_int.n));
+    }
     for(auto t:all_trees){
-        fprintf(fout,"# %d edges, tree %d, log-likelihood: %lf\n",(int)(t.size()),i,llh.LLH(t));
+        fprintf(fout,"# %d edges, tree %d, log-likelihood: %lf\n",(int)(t.size()),i,llh.LLH(t,freq_tmp));
         for(auto edge:t){
             if (mul && edge.first == raw_in.n){
                 fprintf(fout,"%d %d\n",-1,edge.second);
@@ -222,6 +235,12 @@ int main(int argc,char * argv[]){
             }
         }
         i++;
+        if(freq_tmp){
+            fprintf(freq_out,"# tree %d\n",i);
+            for(int _ = 0; _ < llhrange_int.m;_++)
+                for(int j = 0; j < llhrange_int.n;j++)
+                    fprintf(freq_out,"f[%d][%d] = %lf\n",_,j,(*freq_tmp)[_][j]);
+        }
     }
 
     return 0;

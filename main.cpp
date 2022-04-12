@@ -136,6 +136,7 @@ int main(int argc, char * argv[]) {
     vector<pair<int,int> > edges;
 #define m_a ((l_a+r_a)/2)
     while (r_a-l_a>EPS){
+        cout<<"[UniPPM] attempt solving with alpha = " << setprecision(11) << m_a << endl;
         Input transform_in(raw_in,m_a,mul);
         Input_int in(transform_in,n_bits);
         AncestryGraph Gf(in);
@@ -178,7 +179,7 @@ int main(int argc, char * argv[]) {
         t_alpha = m_a;
     }
 #undef m_a
-    cout<<"[UniPPM] using "<< setprecision(11) << t_alpha << " as the final alpha."<<endl;
+    cout<<"[UniPPM] using "<< t_alpha << " as the final alpha."<<endl;
 
     Input transform_in(raw_in,pow(t_alpha,1.0/(raw_in.n*raw_in.m)),mul);
     transform_in.Show(cout);

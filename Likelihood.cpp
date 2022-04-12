@@ -43,7 +43,7 @@ In(Gf),Reads(reads),n_split(N_intervals+1),mul(mul)
 
 }
 
-double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
+double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set, std::vector<std::vector<double> > *f_r){
 
     std::vector<std::vector<int> > ind(In.n), outd(In.n);
     for (auto it = edge_set.begin(); it!=edge_set.end();it++){
@@ -136,7 +136,13 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
     }
 
     std::cout << "GUROBI: " << obj_val_inferred + log_binom_coeffs << " -- recomputed: " << obj_val << std::endl;
-    std::cout << "GUROBI: " << obj_val_inferred + log_binom_coeffs << " -- recomputed: " << obj_val << std::endl;
+    if (f_r!= nullptr){
+        for(int i = 0; i < In.m; i++){
+            for (int j = 0; j < In.n; j++){
+                (*f_r)[i][j] = f[i][j].get(GRB_DoubleAttr_X);
+            }
+        }
+    }
 
     return obj_val;
 }

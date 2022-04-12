@@ -21,7 +21,7 @@ public:
     const int n_split;
     const bool mul;
 
-    double LLH(const std::vector<std::pair<int,int> > & edge_set);
+    double LLH(const std::vector<std::pair<int,int> > & edge_set, std::vector<std::vector<double> > * = nullptr);
 
 private:
 
