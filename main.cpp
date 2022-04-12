@@ -154,7 +154,6 @@ int main(int argc, char * argv[]) {
         Input_int in(transform_in, n_bits);
         Likelihood LLH(in,raw_in,n_intervals,mul);
         llh = LLH.LLH(edges);
-
     }
 
 
@@ -203,6 +202,19 @@ int main(int argc, char * argv[]) {
 //    stringstream sout;
 
 //    ofstream fout(output_file);
+    std::vector<string> out_tag(in.n,"");
+    for(int i=0;i<raw_in.n;i++){
+        if(out_tag[raw_in.cl[i]].empty()) {
+            out_tag[raw_in.cl[i]] += to_string(i);
+        }
+        else{
+            out_tag[raw_in.cl[i]] += "_";
+            out_tag[raw_in.cl[i]] += to_string(i);
+        }
+    }
+    if(mul){
+        out_tag[in.n-1] = "-1";
+    }
 
     auto e1 = chrono::high_resolution_clock::now();
     chrono::duration<double,milli> dur = (e1-start);
@@ -218,13 +230,16 @@ int main(int argc, char * argv[]) {
         fprintf(fout,"# %d edges, tree %d, %d sample, log-likelihood: %lf\n",(int)(it->first.size()),unique,it->second,ll);
         unique ++ ;
         total += it->second;
+//        for(auto edge:it->first){
+//            if (mul && edge.first == raw_in.n){
+//                fprintf(fout,"%d %d\n",-1,edge.second);
+//            }
+//            else {
+//                fprintf(fout, "%d %d\n", edge.first, edge.second);
+//            }
+//        }
         for(auto edge:it->first){
-            if (mul && edge.first == raw_in.n){
-                fprintf(fout,"%d %d\n",-1,edge.second);
-            }
-            else {
-                fprintf(fout, "%d %d\n", edge.first, edge.second);
-            }
+            fprintf(fout,"%s %s\n",out_tag[edge.first].c_str(),out_tag[edge.second].c_str());
         }
     }
 

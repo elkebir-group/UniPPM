@@ -13,13 +13,17 @@ public:
 
     ~Input_Reads();
 
-    const int &m,&n,&r;
+    const int &m,&n,&r,&n_cluster;
 
-    const int *const *const &var, *const *const &ref;
+    const int *const *const &var, *const *const &ref, *const &cl, *const &cl_cnt;
+    const double *const *const &ave_var, *const *const &ave_ref;
+
 private:
     int M,N;
-    int **VAR, **REF, *ptr;
-    int R;
+    int **VAR, **REF, *ptr, *cluster_cnt;
+    double **AVE_VAR, **AVE_REF, *ptr_;
+    int R,n_c;
+    int *cluster;
 };
 
 

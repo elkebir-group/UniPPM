@@ -28,6 +28,7 @@ private:
 //    std::unique_ptr<operations_research::MPSolver> solver;
 //    std::vector<std::vector<operations_research::MPVariable*> > f;
 //    std::vector<std::vector<std::vector<operations_research::MPVariable*> > > lambda;
+//    int **cluster_info,*cl_ptr;
 
     double **F_lower, **F_upper, *ptr1, ***split, **ptpt2, *ptr2;
 };

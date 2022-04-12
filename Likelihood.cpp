@@ -34,6 +34,13 @@ In(Gf),Reads(reads),n_split(N_intervals+1),mul(mul)
         }
     }
 
+//    cl_ptr = new int[reads.n];
+//    cluster_info = new int*[reads.n_cluster];
+//    for(int i = 0, *tmp=cl_ptr ; i < reads.n_cluster ;i++){
+//        cluster_info[i] = tmp;
+//        tmp += reads.cl_cnt[i];
+//    }
+
 }
 
 double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
@@ -97,15 +104,15 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
     }
 
     for (int i = 0; i < In.m; i++){
-        for (int j = 0; j < In.n; j++){
+        for (int j = 0; j < Reads.n; j++){
             for (int k = 0; k < n_split; k++){
                 // for the case where we allow multiple children from the normal clone (mul == true),
                 // there will be an artificial mutation (indexed by n-1), which must be skipped as it
                 // won't have read counts associated with it
-                if(mul && j==(In.n-1)) continue;
+//                if(mul && j==(In.n-1)) continue;
 
-                sum += lambda[i][j][k] * (Reads.var[i][j]*log_(split[i][j][k],In.n_bits)+
-                                          Reads.ref[i][j]*log_(1-split[i][j][k],In.n_bits));
+                sum += lambda[i][Reads.cl[j]][k] * (Reads.var[i][j]*log_(split[i][Reads.cl[j]][k],In.n_bits)+
+                                          Reads.ref[i][j]*log_(1-split[i][Reads.cl[j]][k],In.n_bits));
             }
         }
     }
@@ -118,13 +125,13 @@ double Likelihood::LLH(const std::vector<std::pair<int,int> > & edge_set){
     double log_binom_coeffs = 0;
     double obj_val = 0;
     for (int i = 0; i < In.m; i++) {
-        for (int j = 0; j < In.n; j++) {
-            if(mul && j==(In.n-1)) continue;
+        for (int j = 0; j < Reads.n; j++) {
+//            if(mul && j==(In.n-1)) continue;
             log_binom_coeffs += logcomb(Reads.var[i][j] + Reads.ref[i][j],
                                         Reads.var[i][j]);
             obj_val += logbinom(Reads.var[i][j] + Reads.ref[i][j],
                             Reads.var[i][j],
-                            f[i][j].get(GRB_DoubleAttr_X), In.n_bits);
+                            f[i][Reads.cl[j]].get(GRB_DoubleAttr_X), In.n_bits);
         }
     }
 
@@ -145,12 +152,12 @@ Likelihood::~Likelihood() {
 }
 
 double lower_bound_llh(const Input_Reads & reads, const Input & intervals, const int & n_bits, bool mul) {
-    assert(reads.m==intervals.m && reads.n==(intervals.n-mul));
+    assert(reads.m==intervals.m && reads.n_cluster==(intervals.n-mul));
     double ans = 0;
     for(int i = 0; i < reads.m; i++)
         for(int j = 0; j < reads.n; j++) {
-            double a = logbinom(reads.var[i][j] + reads.ref[i][j], reads.var[i][j], intervals.F_l[i][j], n_bits),
-                    b = logbinom(reads.var[i][j] + reads.ref[i][j], reads.var[i][j], intervals.F_l[i][j], n_bits);
+            double a = logbinom(reads.var[i][j] + reads.ref[i][j], reads.var[i][j], intervals.F_l[i][reads.cl[j]], n_bits),
+                    b = logbinom(reads.var[i][j] + reads.ref[i][j], reads.var[i][j], intervals.F_l[i][reads.cl[j]], n_bits);
             ans += std::max(a,b);
         }
     return ans;
