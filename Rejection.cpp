@@ -68,7 +68,6 @@ const std::vector<std::pair<int, int> > &Rejection::get_tree() {
 }
 
 bool Rejection::generate_tree(double up_sig, double lower_sig, double decay_rate) {
-    assert(up_sig>lower_sig);
     double sig = up_sig;
     while(!random_tree(sig)){
         sig = (sig - lower_sig)*decay_rate+lower_sig;
