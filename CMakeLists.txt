@@ -37,7 +37,7 @@ set( CommonLibs m ${CRYPTOMINISAT5_LIBRARIES} ${APPROXMC_LIBRARIES} ${UNIGEN_LIB
 
 link_libraries(${CommonLibs} Boost::boost )
 
-add_executable(unippm-reads main.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h AdditionalData.cpp AdditionalData.h)# MultithreadSampler.cpp MultithreadSampler.h) #Parallel.cpp Parallel.h)
+add_executable(unippm-reads main.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h Likelihood.cpp Likelihood.h AdditionalData.cpp AdditionalData.h Rejection.cpp Rejection.h)# MultithreadSampler.cpp MultithreadSampler.h) #Parallel.cpp Parallel.h)
 
 add_executable(unippm-freqs main-freqs.cpp Input.cpp Input.h AncestryGraph.cpp AncestryGraph.h Solver.cpp Solver.h CNF.cpp CNF.h AdditionalData.cpp AdditionalData.h) #Parallel.cpp Parallel.h)
 

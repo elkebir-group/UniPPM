@@ -94,7 +94,7 @@ public:
                          const std::string & info_tage = "0");
 
     static void Counting(const CNF & origin, const std::list<CMSat::Lit> & additional_clauses,
-                         ApproxMC::AppMC *appmc, ApproxMC::SolCount &res, int = 1);
+                         ApproxMC::AppMC *appmc, ApproxMC::SolCount &res, int = 1, bool = true);
 
     static void Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCount &sol_count,
                          std::list<std::vector<int> > *ptr_);

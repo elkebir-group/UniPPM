@@ -10,6 +10,7 @@
 
 #include "Solver.h"
 #include "Likelihood.h"
+#include "Rejection.h"
 
 const double EPS(1e-9);
 
@@ -111,7 +112,7 @@ void parse_argument(int argc,char * argv[]){
                 seed = 1;//time(0);
                 break;
             case 'T':
-                timeout = 10000;
+                timeout = 0;
                 break;
             case 'R':
                 force_layer = 2;
@@ -190,7 +191,20 @@ int main(int argc, char * argv[]) {
     Likelihood LLH(in,raw_in,n_bits,mul);
 
     map<vector<pair<int,int> >,int> res;
-    solver.sampling(n_samples * 2, res);
+
+    Rejection rej(Gf);
+    rej.try_sample(10000,res);
+    int tmp=0;
+    for(auto it = res.begin();it!=res.end();it++){
+        tmp+=it->second;
+    }
+    cout<<"[UniPPM] get "<< tmp << " sols from 10000 rej attempt."<<endl;
+    if(tmp>=10){
+        rej.sample(n_samples*2-tmp,res);
+    }
+    else {
+        solver.sampling(n_samples * 2, res);
+    }
 
 //    for(auto i:res){
 //        cout <<"----------- sample:"<<i.second<<endl;

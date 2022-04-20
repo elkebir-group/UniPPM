@@ -263,7 +263,7 @@ CNF::~CNF() {
 }
 
 void CNF::Counting(const CNF &origin, const  std::list<CMSat::Lit>  & additional_clauses,
-                   ApproxMC::AppMC * appmc, ApproxMC::SolCount &res, int verbosity) {
+                   ApproxMC::AppMC * appmc, ApproxMC::SolCount &res, int verbosity, bool count) {
     appmc -> set_verbosity(verbosity);
     appmc -> set_seed(rand());
     appmc -> new_vars(origin.n_variables);
@@ -276,10 +276,12 @@ void CNF::Counting(const CNF &origin, const  std::list<CMSat::Lit>  & additional
     appmc ->set_projection_set(origin.ind_vs);
     appmc ->setup_vars();
 
-    if (solvable(appmc->get_solver()))
-        res = appmc -> count();
-    else
-        res = {0,0,0};
+    if(count) {
+        if (solvable(appmc->get_solver()))
+            res = appmc->count();
+        else
+            res = {0, 0, 0};
+    }
 }
 
 void callback(const std::vector<int> & solution, void* ptr_data) {
@@ -395,7 +397,7 @@ void CNF::UniPPM_Sampling(int n_samples,int rec_step,Solver *ptr, std::list<CMSa
             auto appmc = new ApproxMC::AppMC;
             std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
                       << n_samples << " trees from " << root->count << " solutions)." << std::endl;
-            Counting(*this, additional_clauses, appmc, root->res);
+            Counting(*this, additional_clauses, appmc, root->res, 1,false);
             Sampling(n_samples, appmc, root->res, &data);
             delete appmc;
         }
