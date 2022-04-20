@@ -10,9 +10,6 @@ bool Rejection::random_tree(double sig) {
     int is_f=0,c_rw_v;
     tree_size=0;
     std::fill(cover.begin(),cover.end(), false);
-    for (auto it=r_seq.begin();it!=r_seq.end();it++){
-        *it = (int)(it-r_seq.begin());
-    }
     std::shuffle(r_seq.begin(),r_seq.end(),mt);
     for (auto it=r_seq.begin();it!=r_seq.end();it++) {
         if (cover[*it]) continue;
@@ -20,17 +17,16 @@ bool Rejection::random_tree(double sig) {
         if (c_rw_v < 0) {
             is_f++;
             if (is_f > 1) return false;
-            continue;
         }
-        for (auto it = rw.rbegin(); it != rw.rend(); it++) {
+        for (auto i=rw_size-1; i>=0; i--) {
             if(c_rw_v >= 0) {
-                tree[tree_size++] = {c_rw_v, *it};
+                tree[tree_size++] = {c_rw_v, rw[i]};
             }
             else {
-                r = *it;
+                r = rw[i];
             }
-            cover[*it]=true;
-            c_rw_v = *it;
+            cover[rw[i]]=true;
+            c_rw_v = rw[i];
         }
     }
     return true;
@@ -38,27 +34,30 @@ bool Rejection::random_tree(double sig) {
 
 int Rejection::random_walk(int start_v, double sig) {
     std::fill(in_walk.begin(),in_walk.end(), false);
-    rw.clear();
+//    rw.clear();
     rw_size = 1;
     rw[0] = (start_v);
     rw_pointer[start_v] = 0;
     in_walk[start_v]= true;
     int c_v,n_v;
     while (true){
-        c_v = *rw.rbegin();
-        if (in.ind(c_v).size()==0 || (rand()/(double)RAND_MAX < sig) )
+        c_v = rw[rw_size-1];
+        auto ctmp = rand()/(double)RAND_MAX;
+        if (in.ind(c_v).size()==0 || (ctmp < sig) )
             return -1;
         n_v = in.ind(c_v)[rand()%in.ind(c_v).size()];
         if (in_walk[n_v]){
-            std::fill(rw.begin()+rw_pointer[n_v]+1,rw.begin()+rw_size, false);
-//            for (auto it = rw.begin()+rw_pointer[n_v]+1;it!=rw.begin()+rw_size;it++){
-//                in_walk[*it]=false;
-//            }
+//            std::fill(rw.begin()+rw_pointer[n_v]+1,rw.begin()+rw_size, false);
+            for (auto it = rw.begin()+rw_pointer[n_v]+1;it!=rw.begin()+rw_size;it++){
+                in_walk[*it]=false;
+            }
             rw_size = rw_pointer[n_v]+1;
+            continue;
         }
         if (cover[n_v]){
             return n_v;
         }
+        rw_pointer[n_v] = rw_size;
         rw[rw_size++]=n_v;
         in_walk[n_v] = true;
     }
@@ -144,6 +143,9 @@ cover(Gf.In.n),in_walk(Gf.In.n),r_seq(Gf.In.n),
 rw(Gf.In.n),rw_pointer(Gf.In.n),
 tree(Gf.In.n-1),
 F_verify(Gf.In.m*Gf.In.n){
+    for (auto it=r_seq.begin();it!=r_seq.end();it++){
+        *it = (int)(it-r_seq.begin());
+    }
 }
 
 

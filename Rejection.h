@@ -15,7 +15,7 @@ class Rejection {
 public:
     Rejection(const AncestryGraph & Gf);
 
-    bool generate_tree(double up_sig=0.3, double lower_sig=0.001, double decay_rate=0.8);
+    bool generate_tree(double up_sig=0.3, double lower_sig=0.00, double decay_rate=0.8);
 
     const std::vector<std::pair<int,int> > & get_tree();
 

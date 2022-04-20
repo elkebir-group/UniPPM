@@ -199,8 +199,9 @@ int main(int argc, char * argv[]) {
         tmp+=it->second;
     }
     cout<<"[UniPPM] get "<< tmp << " sols from 10000 rej attempt."<<endl;
+    res.clear();
     if(tmp>=10){
-        rej.sample(n_samples*2-tmp,res);
+        rej.sample(n_samples*2, res);
     }
     else {
         solver.sampling(n_samples * 2, res);
