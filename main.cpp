@@ -194,7 +194,7 @@ int main(int argc, char * argv[]) {
     }
     cout<<"[UniPPM] get "<< tmp << " sols from 10000 rej attempt."<<endl;
     res.clear();
-    if(tmp>=3){
+    if(tmp>=5){
         rej.sample(n_samples*2, res);
     }
     else {
