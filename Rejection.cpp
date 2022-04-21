@@ -84,11 +84,13 @@ bool Rejection::SC() {
 //        tree_in_d[e.second].push_back(e.first);
     }
     std::fill(F_verify.begin(),F_verify.end(),0);
-    return verify_SC(r);
+    auto tmp = verify_SC(r);
+
+    return tmp;
 }
 
 bool Rejection::verify_SC(int v) {
-#define F_mc(A,B) F_verify[(A)*in.In.m+(B)]
+#define F_mc(A,B) F_verify[(A)*in.In.n+(B)]
     for (auto n_v:tree_out_d[v]){
         if(!verify_SC(n_v))
             return false;
@@ -97,8 +99,9 @@ bool Rejection::verify_SC(int v) {
         for (auto n_v:tree_out_d[v]){
             F_mc(i,v) += F_mc(i,n_v);
         }
-        if (F_mc(i,v) > in.In.F_u[i][v])
+        if (F_mc(i,v) > in.In.F_u[i][v]) {
             return false;
+        }
         F_mc(i,v) = std::max(F_mc(i,v),in.In.F_l[i][v]);
     }
     return true;
