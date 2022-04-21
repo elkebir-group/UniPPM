@@ -22,11 +22,11 @@ long long seed;
 bool mul;
 string add_data;
 
-int timeout,force_layer;
+int force_layer;//,timeout;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-s","-T","-R","-C"});
+    set<string> p_options({"-i","-o","-n","-N","-s","-R","-C"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -54,9 +54,6 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 's':
                 seed = stoi(it->second);
-                break;
-            case 'T':
-                timeout = stoi(it->second);
                 break;
             case 'R':
                 force_layer = stoi(it->second);
@@ -87,9 +84,6 @@ void parse_argument(int argc,char * argv[]){
             case 's':
                 seed = 1;//time(0);
                 break;
-            case 'T':
-                timeout = 2000;
-                break;
             case 'R':
                 force_layer = 2;
                 break;
@@ -114,7 +108,7 @@ int main(int argc, char * argv[]) {
     double l_a = EPS,r_a = 1-EPS, t_alpha;
 
     AncestryGraph Gf(in);
-    Solver solver(Gf,timeout,force_layer);
+    Solver solver(Gf,force_layer);
     solver.add_additional_constraints(additionalData);
 
     map<vector<pair<int,int> >,int> res;
