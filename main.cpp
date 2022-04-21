@@ -168,7 +168,7 @@ int main(int argc, char * argv[]) {
             r_a = m_a;
     }
     if (m_a < t_alpha){
-        cerr<<"[UniPPM] warning: given help_approx_coef is too large, overrided by min_alpha required."<<endl;
+        cout<<"[UniPPM] warning: given help_approx_coef is too large, overrided by min_alpha required."<<endl;
     }
     else{
         t_alpha = m_a;
