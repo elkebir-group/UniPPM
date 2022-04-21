@@ -314,7 +314,7 @@ void CNF::Sampling(int n_samples, ApproxMC::AppMC *appmc, const ApproxMC::SolCou
 //    if (appmc) appmc->signal_stop();
 //}
 
-void CNF::UniPPM_Preparing(/*int timeout,*/ bool rec_t, int rec_step, int force_layer, Solver *ptr,
+void CNF::UniPPM_Preparing(/*int timeout,*/ int rec_step, int force_layer, Solver *ptr,
                            std::list<CMSat::Lit> &additional_clauses,
                            CNF::rec_node *root, const std::string &info_tag) {
     if(root == nullptr){
@@ -356,10 +356,10 @@ void CNF::UniPPM_Preparing(/*int timeout,*/ bool rec_t, int rec_step, int force_
     else
         root->split = true;
 
-    if(!rec_t) {
+//    if(!rec_t) {
         delete root->appmc;
         root->appmc = nullptr;
-    }
+//    }
 
     if(root->split)
     {
@@ -370,7 +370,7 @@ void CNF::UniPPM_Preparing(/*int timeout,*/ bool rec_t, int rec_step, int force_
         root->count = 0;
         for(int i = 0;i < root->n; i++){
             additional_clauses.emplace_back(ptr->CNF_recursive_sets[rec_step][i],false);
-            UniPPM_Preparing(rec_t,rec_step+1,force_layer,ptr,additional_clauses,& root->splits[i],
+            UniPPM_Preparing(rec_step+1,force_layer,ptr,additional_clauses,& root->splits[i],
                              info_tag+"."+ std::to_string(i));
             additional_clauses.pop_back();
             root->count += root->splits[i].count;
@@ -388,19 +388,19 @@ void CNF::UniPPM_Sampling(int n_samples,int rec_step,Solver *ptr, std::list<CMSa
         return;
     }
     if (!root->split){
-        if (root->appmc){
+//        if (root->appmc){
+//            std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
+//                      << n_samples << " trees from " << root->count << " solutions)." << std::endl;
+//            Sampling(n_samples,root->appmc,root->res,&data);
+//        }
+//        else {
+            root->appmc = new ApproxMC::AppMC;
             std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
                       << n_samples << " trees from " << root->count << " solutions)." << std::endl;
-            Sampling(n_samples,root->appmc,root->res,&data);
-        }
-        else {
-            auto appmc = new ApproxMC::AppMC;
-            std::cout << "[UniPPM][" << info_tag << "] sampling with unigen: ("
-                      << n_samples << " trees from " << root->count << " solutions)." << std::endl;
-            Counting(*this, additional_clauses, appmc, root->res, 1,false);
-            Sampling(n_samples, appmc, root->res, &data);
-            delete appmc;
-        }
+            Counting(*this, additional_clauses, root->appmc, root->res, 1,false);
+            Sampling(n_samples, root->appmc, root->res, &data);
+            delete root->appmc;
+//        }
     }
     else{
         std::cout<< "[UniPPM][" << info_tag << "] sampling (branching)." <<std::endl;

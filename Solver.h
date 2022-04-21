@@ -16,7 +16,7 @@
 class Solver {
     friend class CNF;
 public:
-    explicit Solver(const AncestryGraph & In, bool keep_appmc_obj = true, int force_layer = 2);
+    explicit Solver(const AncestryGraph & In, int force_layer = 2);
 
     ~Solver();
 

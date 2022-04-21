@@ -24,11 +24,11 @@ long long seed;
 bool mul;
 string add_data;
 
-int timeout,force_layer;
+int force_layer;//,timeout;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-T","-R","-M","-C"});
+    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-R","-M","-C"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -65,9 +65,6 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 's':
                 seed = stoi(it->second);
-                break;
-            case 'T':
-                timeout = stoi(it->second);
                 break;
             case 'R':
                 force_layer = stoi(it->second);
@@ -110,9 +107,6 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 's':
                 seed = 1;//time(0);
-                break;
-            case 'T':
-                timeout = 0;
                 break;
             case 'R':
                 force_layer = 2;
@@ -186,7 +180,7 @@ int main(int argc, char * argv[]) {
     transform_in.Show(cout);
     Input_int in(transform_in,n_bits);
     AncestryGraph Gf(in);
-    Solver solver(Gf,timeout,force_layer);
+    Solver solver(Gf, force_layer);
     solver.add_additional_constraints(additionalData);
     Likelihood LLH(in,raw_in,n_bits,mul);
 

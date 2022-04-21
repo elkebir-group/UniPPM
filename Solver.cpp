@@ -7,7 +7,7 @@
 #include <chrono>
 #include <utility>
 
-Solver::Solver(const AncestryGraph &in, bool keep_appmc_obj, int force_layer):
+Solver::Solver(const AncestryGraph &in, int force_layer):
 F(),In(in),keep_appmc_obj(keep_appmc_obj),force_layer(force_layer){
 
     std::vector<CMSat::Lit> r_vars;
@@ -150,12 +150,12 @@ void Solver::interpret(const std::vector<int> & vars, std::vector<std::pair<int,
 }
 
 void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, int> &res) {
-    int n_d1 = In.outd(In.In.r).size();
-    std::vector<uint32_t> enumerate(n_d1);
+//    int n_d1 = In.outd(In.In.r).size();
+//    std::vector<uint32_t> enumerate(n_d1);
 
-    for (int i = 0; i < n_d1; i++){
-        enumerate[i] = edge2var[std::pair<int,int>(In.In.r,In.outd(In.In.r)[i])].var();
-    }
+//    for (int i = 0; i < n_d1; i++){
+//        enumerate[i] = edge2var[std::pair<int,int>(In.In.r,In.outd(In.In.r)[i])].var();
+//    }
 
     std::list<std::pair<std::vector<int>, int> >  unigen_res;
     std::vector<std::pair<int,int> > tmp;
@@ -164,7 +164,7 @@ void Solver::sampling(int n_sample, std::map<std::vector<std::pair<int, int> >, 
 
     set_up_recursive();
 
-    F.UniPPM_Preparing(keep_appmc_obj,0,force_layer,this,tmp_cs);
+    F.UniPPM_Preparing(0,force_layer,this,tmp_cs);
     tmp_cs.clear();
     F.UniPPM_Sampling(n_sample,0,this,tmp_cs,data);
 

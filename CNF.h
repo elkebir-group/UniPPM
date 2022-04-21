@@ -85,7 +85,7 @@ public:
         ~rec_node(){delete [] splits;}
     };
 
-    void UniPPM_Preparing(/*int timeout,*/ bool rec_t, int rec_step, int force_layer,
+    void UniPPM_Preparing(/*int timeout,*/ int rec_step, int force_layer,
                           Solver *ptr, std::list<CMSat::Lit> & additional_clauses,
                           rec_node *root = nullptr, const std::string & info_tag = "0");
 
