@@ -26,10 +26,11 @@ string add_data;
 
 int force_layer;//,timeout;
 string cnf_file;
+int rej_att,rej_thr;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-R","-M","-C","-F"});
+    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-R","-M","-C","-F","-J","-j"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -78,6 +79,12 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'F':
                 cnf_file = it->second;
+                break;
+            case 'J':
+                rej_att = stoi(it->second);
+                break;
+            case 'j':
+                rej_thr = stoi(it->second);
         }
     }
 
@@ -124,6 +131,11 @@ void parse_argument(int argc,char * argv[]){
             case 'F':
                 cnf_file = "";
                 break;
+            case 'J':
+                rej_att = -1;
+                break;
+            case 'j':
+                rej_thr = -1;
         }
     }
     srand(seed);
@@ -196,12 +208,18 @@ int main(int argc, char * argv[]) {
     map<vector<pair<int,int> >,int> res;
 
     Rejection rej(Gf);
-    rej.try_sample(10000,res);
+    if (rej_att < 0){
+        rej_att = int(1e6);
+    }
+    if (rej_thr < 0 ){
+        rej_thr = 5;
+    }
+    rej.try_sample(rej_att,res);
     int tmp=0;
     for(auto it = res.begin();it!=res.end();it++){
         tmp+=it->second;
     }
-    cout<<"[UniPPM] get "<< tmp << " sols from 10000 rej attempt."<<endl;
+    cout<<"[UniPPM] get "<< tmp << " sols from "<< rej_att << " rej attempt."<<endl;
     res.clear();
     if(tmp>=5){
         rej.sample(n_samples*2, res);
