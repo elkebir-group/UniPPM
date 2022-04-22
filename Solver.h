@@ -35,6 +35,8 @@ public:
 
     void add_additional_constraints(const AdditionalData & ad);
 
+    void extract_CNF( const std::string & filename);
+
 private:
 
     std::vector<std::vector<uint32_t> > CNF_recursive_sets;

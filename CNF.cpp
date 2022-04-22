@@ -226,7 +226,7 @@ std::vector<CMSat::Lit> CNF::Solve(bool ind) {
     for (auto it = clauses.begin(); it!=clauses.end();it++){
         minisat->add_clause(*it);
     }
-    CMSat::lbool ret = minisat ->solve();
+    CMSat::lbool ret = minisat ->solve(NULL, true); //possible bug
     if (ret==CMSat::l_False){
         delete minisat;
         if (ind){

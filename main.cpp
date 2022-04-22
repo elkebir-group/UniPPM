@@ -25,10 +25,11 @@ bool mul;
 string add_data;
 
 int force_layer;//,timeout;
+string cnf_file;
 
 void parse_argument(int argc,char * argv[]){
     string options,value;
-    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-R","-M","-C"});
+    set<string> p_options({"-i","-o","-n","-N","-a","-A","-I","-s","-R","-M","-C","-F"});
 
     for (int i = 1; i < argc; i++){
         options = argv[i];
@@ -74,6 +75,9 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'C':
                 add_data = it->second;
+                break;
+            case 'F':
+                cnf_file = it->second;
         }
     }
 
@@ -116,6 +120,10 @@ void parse_argument(int argc,char * argv[]){
                 break;
             case 'C':
                 add_data = "";
+                break;
+            case 'F':
+                cnf_file = "";
+                break;
         }
     }
     srand(seed);
@@ -136,6 +144,7 @@ int main(int argc, char * argv[]) {
         Input_int in(transform_in,n_bits);
         AncestryGraph Gf(in);
         Solver tester(Gf);
+//        tester.extract_CNF("tmp.cnf");
         tester.add_additional_constraints(additionalData);
         bool att = tester.attempt(tester.self_solver(),&edges);
 

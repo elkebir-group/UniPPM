@@ -225,6 +225,10 @@ void Solver::add_additional_constraints(const AdditionalData & ad) {
     ad.Enforce_constraints(&F, relation);
 }
 
+void Solver::extract_CNF(const std::string &filename) {
+    F.to_file(filename.c_str());
+}
+
 
 
 
