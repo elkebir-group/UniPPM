@@ -209,7 +209,7 @@ int main(int argc, char * argv[]) {
 
     Rejection rej(Gf);
     if (rej_att < 0){
-        rej_att = int(1e6);
+        rej_att = int(1e7);
     }
     if (rej_thr < 0 ){
         rej_thr = 5;
