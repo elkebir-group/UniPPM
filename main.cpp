@@ -221,7 +221,7 @@ int main(int argc, char * argv[]) {
     }
     cout<<"[UniPPM] get "<< tmp << " sols from "<< rej_att << " rej attempt."<<endl;
     res.clear();
-    if(tmp>=5){
+    if(tmp>=rej_thr){
         rej.sample(n_samples*2, res);
     }
     else {
