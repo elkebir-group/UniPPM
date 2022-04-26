@@ -127,7 +127,9 @@ void Rejection::try_sample(int n_sample, std::map<std::vector<std::pair<int, int
 void Rejection::sample(int n_sample, std::map<std::vector<std::pair<int, int> >, int> &res) {
     std::cout<<"[UniPPM] sampling with rejection sampling.." << std::endl;
     for (int i = 0; i < n_sample; i++){
-        std::cout<<"[UniPPM] sampling " <<(i+1) <<"th tree."<< std::endl;
+        if(i%100==99) {
+            std::cout << "[UniPPM] sampling " << (i + 1) << "th tree." << std::endl;
+        }
         do{
             generate_tree();
         }while(!SC());
