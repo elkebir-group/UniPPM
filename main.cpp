@@ -209,10 +209,10 @@ int main(int argc, char * argv[]) {
 
     Rejection rej(Gf);
     if (rej_att < 0){
-        rej_att = int(1e6);
+        rej_att = int(pow(in.n,(in.n-2)/4.0))*20;
     }
     if (rej_thr < 0 ){
-        rej_thr = 5;
+        rej_thr = 10;
     }
     rej.try_sample(rej_att,res);
     int tmp=0;
