@@ -152,4 +152,7 @@ F_verify(Gf.In.m*Gf.In.n){
     }
 }
 
+Rejection::~Rejection() {
+}
+
 
