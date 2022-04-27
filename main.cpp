@@ -212,7 +212,7 @@ int main(int argc, char * argv[]) {
         rej_att = int(pow(in.n,(in.n-2)/4.0))*20;
     }
     if (rej_thr < 0 ){
-        rej_thr = 7;
+        rej_thr = 6;
     }
     rej.try_sample(rej_att,res);
     int tmp=0;
