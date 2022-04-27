@@ -9,6 +9,8 @@
 AdditionalData::AdditionalData(const int &n, const std::string &file_name): n(n) {
     if (file_name.empty()) {
         n_c = 0;
+        ptr = nullptr;
+        data = nullptr;
     } else {
         std::ifstream fin(file_name);
         fin >> n_c;
