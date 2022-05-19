@@ -114,7 +114,13 @@ void Rejection::try_sample(int n_sample, std::map<std::vector<std::pair<int, int
             generate_tree();
 //        }while(!SC());
         if(!SC()) continue;
-        std::sort(tree.begin(), tree.end());
+        struct comp{
+            bool operator()(const std::pair<int,int> &A,const std::pair<int,int> &B){
+                return ((A.first<<15)+A.second)<((B.first<<15)+B.second);
+            }
+        };
+        std::sort(tree.begin(), tree.end(),comp());
+
         auto it = res.find(tree);
         if (it !=res.end()){
             it->second ++;
@@ -135,6 +141,12 @@ void Rejection::sample(int n_sample, std::map<std::vector<std::pair<int, int> >,
             generate_tree();
         }while(!SC());
         if(!SC()) continue;
+        struct comp{
+            bool operator()(const std::pair<int,int> &A,const std::pair<int,int> &B){
+                return ((A.first<<15)+A.second)<((B.first<<15)+B.second);
+            }
+        };
+        std::sort(tree.begin(), tree.end(),comp());
         auto it = res.find(tree);
         if (it !=res.end()){
             it->second ++;
@@ -153,6 +165,7 @@ F_verify(Gf.In.m*Gf.In.n){
     for (auto it=r_seq.begin();it!=r_seq.end();it++){
         *it = (int)(it-r_seq.begin());
     }
+
 }
 
 Rejection::~Rejection() {
