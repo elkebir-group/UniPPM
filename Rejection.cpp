@@ -114,6 +114,7 @@ void Rejection::try_sample(int n_sample, std::map<std::vector<std::pair<int, int
             generate_tree();
 //        }while(!SC());
         if(!SC()) continue;
+        std::sort(tree.begin(), tree.end());
         auto it = res.find(tree);
         if (it !=res.end()){
             it->second ++;
