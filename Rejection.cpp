@@ -119,7 +119,7 @@ void Rejection::try_sample(int n_sample, std::map<std::vector<std::pair<int, int
                 return ((A.first<<15)+A.second)<((B.first<<15)+B.second);
             }
         };
-        std::sort(tree.begin(), tree.end(),comp());
+        std::sort(tree.begin(), tree.end());
 
         auto it = res.find(tree);
         if (it !=res.end()){
@@ -141,12 +141,7 @@ void Rejection::sample(int n_sample, std::map<std::vector<std::pair<int, int> >,
             generate_tree();
         }while(!SC());
         if(!SC()) continue;
-        struct comp{
-            bool operator()(const std::pair<int,int> &A,const std::pair<int,int> &B){
-                return ((A.first<<15)+A.second)<((B.first<<15)+B.second);
-            }
-        };
-        std::sort(tree.begin(), tree.end(),comp());
+        std::sort(tree.begin(), tree.end());
         auto it = res.find(tree);
         if (it !=res.end()){
             it->second ++;
