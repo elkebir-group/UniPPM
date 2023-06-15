@@ -2,7 +2,7 @@
 // Created by Yuanyuan Qi on 6/14/23.
 //
 #include <cmath>
-#include "input.h"
+#include "Input.h"
 #include "ILP.h"
 #include "Hashing.h"
 #include "AncestryGraph.h"
