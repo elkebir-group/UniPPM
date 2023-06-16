@@ -26,7 +26,6 @@ struct ILP {
     Hashing &hash;
     std::vector<GRBVar> arc;
     ILP(const ILP_base& base, Hashing & hash, int n_constr);
-
 };
 
 

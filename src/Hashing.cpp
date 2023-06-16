@@ -11,5 +11,5 @@ Hashing::Hashing(int n):n(n),hash_f_coef(n) {
 
 void Hashing::generate() {
     for (auto &a:hash_f_coef)
-        a=rand()%2;
+        a=rand()&1;
 }

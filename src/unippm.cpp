@@ -21,7 +21,7 @@ int main(int argc, char ** argv) {
     Hashing hash(GF.arc_set.size() + 1);
     int ub = int(log2(input.n) * (input.n - 2)) + 1;
     int lb = 1;
-    int mid = (ub + 10 * lb) / 11;
+    int mid = (ub + 2*lb) / 3;
     printf("%d %d %d\n",lb,ub,mid);
     int n_fail;
     while (ub - lb > 0) {
@@ -44,7 +44,8 @@ int main(int argc, char ** argv) {
 //    return 0;
 //    sampling
     if (argc >= 3) n_samples = std::stoi(argv[2]);
-    else n_samples = 100;
+    else n_samples = 10;
+    printf("Sampling %d solutions with %d hashing functions\n", n_samples, mid);
     int n_sampled = 0;
     while (n_sampled < n_samples) {
         ILP test(ilp_base, hash, lb);
