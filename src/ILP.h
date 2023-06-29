@@ -19,6 +19,8 @@ struct ILP_base{
 //    std::vector<GRBVar> root;
     std::vector<GRBVar> arc;
     std::vector<std::vector<GRBVar> > arc_f;
+    std::vector<std::vector<GRBVar> > help_f;
+    std::vector<std::vector<GRBVar> > help_f2;
     ILP_base(const AncestryGraph &GF, GRBEnv & env);
 };
 

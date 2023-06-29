@@ -8,9 +8,13 @@
 #include "Hashing.h"
 
 ILP_base::ILP_base(const AncestryGraph &GF, GRBEnv & env):
-data(GF.data),GF(GF), model(env), f(data.m, std::vector<GRBVar>(data.n)),
+data(GF.data),GF(GF), model(env),
+f(data.m, std::vector<GRBVar>(data.n)),
 //root(data.n),
-arc(GF.arc_set.size()), arc_f(data.m,std::vector<GRBVar>(GF.arc_set.size()))
+arc(GF.arc_set.size()),
+arc_f(data.m,std::vector<GRBVar>(GF.arc_set.size())),
+help_f(data.m, std::vector<GRBVar>(data.n)),
+help_f2(data.m, std::vector<GRBVar>(data.n))
 {
     model.set(GRB_IntParam_MIPFocus, GRB_MIPFOCUS_FEASIBILITY);
     model.set(GRB_IntParam_LazyConstraints, 1);
@@ -42,6 +46,17 @@ arc(GF.arc_set.size()), arc_f(data.m,std::vector<GRBVar>(GF.arc_set.size()))
                 sum += arc_f[i][GF.arc_set_index[p][q]];
             }
             model.addConstr(f[i][p] >= sum );
+            help_f[i][p]=model.addVar(0,1,0,GRB_INTEGER,
+                                      "max_f["+ std::to_string(i)+","+std::to_string(p)+"]");
+            help_f2[i][p]=model.addVar(0,1,0,GRB_CONTINUOUS,
+                                       "max_f_sum["+ std::to_string(i)+","+std::to_string(p)+"]");
+
+            model.addConstr(help_f2[i][p] <= help_f[i][p]);
+            model.addConstr(help_f2[i][p] <= sum);
+            model.addConstr(help_f2[i][p]>=sum+help_f[i][p]-1);
+
+//            model.addConstr(f[i][p] <= data.data[i][p].first+sum-help_f2[i][p]-(1-help_f[i][p])*data.data[i][p].first);
+            model.addConstr(f[i][p] <= sum-help_f2[i][p]+help_f[i][p]*data.data[i][p].first);
             sum.clear();
         }
     }
