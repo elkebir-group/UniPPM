@@ -6,7 +6,7 @@
 
 #include <fstream>
 
-Input::Input(const std::string &filename) {
+Input::Input(const std::string &filename, int r): r(r) {
     std::ifstream fin(filename);
     fin >> m >> n;
     data = std::vector<std::vector<std::pair<double, double> > >(m,std::vector<std::pair<double, double> >(n));

@@ -17,7 +17,7 @@ int main(int argc, char ** argv) {
     GRBEnv env(true);
     env.set(GRB_IntParam_OutputFlag, 0);
     env.start();
-    ILP_base ilp_base(input, GF, env);
+    ILP_base ilp_base(GF, env);
     Hashing hash(GF.arc_set.size() + 1);
     int ub = int(log2(input.n) * (input.n - 2)) + 1;
     int lb = 1;

@@ -13,7 +13,7 @@ arc_set_index(data.n,std::vector<int>(data.n,-1))
     bool tmp_flag;
     for (auto i=0; i< data.n;++i){
         for(auto j=0;j< data.n;++j){
-            if(i==j) continue;
+            if(i==j or j==data.r) continue;
             tmp_flag= true;
             for (auto _sample=0;_sample<data.m;_sample++){
                 if(data.data[_sample][i].second < data.data[_sample][j].first){ //i can't be ancestor of j

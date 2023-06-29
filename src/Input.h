@@ -10,8 +10,9 @@
 
 struct Input {
     int n,m; //n mutations, m samples
+    int r;
     std::vector<std::vector<std::pair<double,double> > >  data;
-    explicit Input(const std::string& filename);
+    explicit Input(const std::string& filename, int r = 0);
 };
 
 
