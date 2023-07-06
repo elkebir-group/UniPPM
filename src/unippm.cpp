@@ -19,6 +19,11 @@ int main(int argc, char ** argv) {
     env.start();
     ILP_base ilp_base(GF, env);
     Hashing hash(GF.arc_set.size() + 1);
+    ILP attempt(ilp_base,hash,0);
+//    if (attempt.model.get(GRB_IntAttr_Status)==GRB_INFEASIBLE){
+//        printf("unsolvable\n");
+//        return 0;
+//    }
     int ub = int(log2(input.n) * (input.n - 2)) + 1;
     int lb = 1;
     int mid = (ub + 2*lb) / 3;

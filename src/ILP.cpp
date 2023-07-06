@@ -23,7 +23,7 @@ ILP_base::ILP_base(const AncestryGraph &GF, GRBEnv & env):
     for (int i = 0; i < data.m; i++) {
         for (int p = 0; p < data.n; p++) {
             for (auto q: GF.possible_children[p]) {
-                sum += arc[i]*data.data[i][q];
+                sum += arc[GF.arc_set_index[p][q]]*data.data[i][q];
             }
             model.addConstr(data.data[i][p] >= sum );
             sum.clear();
