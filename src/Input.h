@@ -1,5 +1,5 @@
 //
-// Created by Yuanyuan Qi on 6/14/23.
+// Created by Yuanyuan Qi on 7/6/23.
 //
 
 #ifndef UNIPPM_INPUT_H
@@ -11,7 +11,7 @@
 struct Input {
     int n,m; //n mutations, m samples
     int r;
-    std::vector<std::vector<std::pair<double,double> > >  data;
+    std::vector<std::vector<double > >  data;
     explicit Input(const std::string& filename, int r = 0);
 };
 

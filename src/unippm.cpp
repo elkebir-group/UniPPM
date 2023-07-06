@@ -22,7 +22,7 @@ int main(int argc, char ** argv) {
     int ub = int(log2(input.n) * (input.n - 2)) + 1;
     int lb = 1;
     int mid = (ub + 2*lb) / 3;
-    printf("%d %d %d\n",lb,ub,mid);
+//    printf("%d %d %d\n",lb,ub,mid);
     int n_fail;
     while (ub - lb > 0) {
         n_fail = 0;
@@ -33,7 +33,7 @@ int main(int argc, char ** argv) {
             }
         }
 
-        printf("%d %d\n",mid,n_fail);
+//        printf("%d %d\n",mid,n_fail);
         if (n_fail > 5) { // Fails a lot, maybe too many constraints
             ub = mid;
         } else { // Succeeds a lot, maybe too few constraints

@@ -22,4 +22,4 @@ set( CommonLibs m ${GUROBI_CXX_LIBRARY} ${GUROBI_LIBRARY} )
 
 link_libraries(${CommonLibs} Boost::boost )
 
-add_executable(unippm src/unippm.cpp src/Input.h src/Input.cpp src/AncestryGraph.h src/AncestryGraph.cpp src/Hashing.cpp src/Hashing.h src/ILP.cpp src/ILP.h)
+add_executable(unippm src/unippm.cpp src/AncestryGraph.h src/AncestryGraph.cpp src/Hashing.cpp src/Hashing.h src/ILP.cpp src/ILP.h src/Input.cpp src/Input.h)
